@@ -8,10 +8,13 @@ class Matrix{
 public:
 	std::vector<float> matrix;
 	char type;
+	float pos_x;
+	float pos_y;
 	
 	Matrix(){
 		matrix.assign(16, 0.0f);
 		matrix[0]= matrix[5] = matrix[10] = matrix[15] = 1.0f;
+		pos_x=pos_y=0.0f;
 	}
 	
 	void Restart_Identity(std::vector<float> &matriz){
@@ -21,17 +24,17 @@ public:
 	
 	// Recordar v1 es el global y v2 es el modificado
 	void matrixMulti(std::vector<float> &v1,std::vector<float> &v2){
-		std::vector<float> result(v1.size());
+		std::vector<float> result(16);
 		for(int i=0;i<4;i++){
 			for(int j=0;j<4;j++){
 				float acum=0.0f;
 				for(int k=0;k<4;k++){
-					acum+=v1[k*4+i]*v2[j*4+k];
+					acum += v2[k*4 + i] * v1[j*4 + k];
 				}
-				result[j*4+i]=acum;
+				result[j*4 + i] = acum;
 			}
 		}
-		v1=std::move(result);
+		v1 = std::move(result);
 	}
 	
 	
@@ -52,6 +55,15 @@ public:
 		tmp[13]=-second_val;
 		
 		matrixMulti(matrix,tmp);
+	}
+	
+	void PrintMatrix(){
+		for(int i=0;i<4;i++){
+			for(int j=0;j<4;j++){
+				std::cout << matrix[j*4+i] << " ";
+			}
+			std::cout << std::endl;
+		}
 	}
 	
 	void rotate_norm(float ang,char axis){
@@ -152,6 +164,8 @@ public:
 		this->type=tpe;
 		switch(type){
 			case 'a':{
+				pos_x+=first_val;
+				pos_y+=second_val;
 				translate_norm(first_val,second_val);
 				break;
 			}
@@ -160,19 +174,27 @@ public:
 				break;
 			}
 			case 'd':{
-				rotate_norm(first_val,axis);
+				translate_inv(pos_x, pos_y);
+				rotate_norm(first_val, axis);
+				translate_norm(pos_x,pos_y);
 				break;
 			}
 			case 'f':{
-				rotate_inv(first_val,axis);
+				translate_inv(pos_x, pos_y);
+				rotate_inv(first_val, axis);
+				translate_norm(pos_x,pos_y);
 				break;
 			}
 			case 'g':{
-				scale_norm(first_val,second_val);
+				translate_inv(pos_x, pos_y);
+				scale_norm(first_val, second_val);
+				translate_norm(pos_x,pos_y);
 				break;
 			}
 			case 'h':{
-				scale_inv(first_val,second_val);
+				translate_inv(pos_x, pos_y);
+				scale_inv(first_val, second_val);
+				translate_norm(pos_x,pos_y);
 				break;
 			}
 			default:{
