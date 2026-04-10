@@ -24,8 +24,10 @@ Circle circulo_inicial;
 std::unordered_map<std::string,GLuint> mapa;
 std::vector<float> vertices;
 std::vector<GLuint> indices;
+std::queue<Input_step> pedidos;
 GLuint VAO,VBO,EBO;
 const float RADIUS=0.5f;
+float anim_timer = 0.0f,anim_interval = 0.05f,deltaTime = 0.016;
 std::string input="";
 unsigned int NUM_REBANADAS=4,SELECT_REBANDA=-1;
 bool configurando=false,select_rebanada=false,queueing=false;
@@ -74,7 +76,15 @@ void framebuffer_size_callback(GLFWwindow* window,int width,int height){
 	glViewport(0,0,width,height);
 }
 
-
+void Fill_pedidos(){
+	const float STEPS=60.0f;
+	float step=0.1f/STEPS;
+	for(float i=step;i<0.1f;i+=step){
+		pedidos.push(Input_step{'a',{i,0.0f}});
+		pedidos.push(Input_step{'d',{i,0.0f}});
+	}
+	
+}
 
 void set_Vs(){
 	glGenVertexArrays(1,&VAO);
@@ -263,9 +273,6 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 			mat->UpdateView('g',0.9,0.9);
 			break;
 		}
-		case GLFW_KEY_X:{
-			break;
-		}
 		default:{
 			break;
 		}
@@ -335,7 +342,6 @@ void print_menu() {
 	std::cout << "|  f. Rotar inverso (0.1)         |" << std::endl;
 	std::cout << "|  g. Escalar (1.1)               |" << std::endl;
 	std::cout << "|  h. Escalar inverso (0.9)       |" << std::endl;
-	std::cout << "|  x. Queue de animacion          |" << std::endl;
     std::cout << "|  4. Mover arriba (Flecha arr)   |" << std::endl;
     std::cout << "|  5. Mover abajo (Flecha abj)    |" << std::endl;
     std::cout << "|  6. Mover derecha (Flecha der)  |" << std::endl;
@@ -385,14 +391,29 @@ int main(){
 	GLuint pinaLoc = glGetUniformLocation(mapa["Pina"],"model");
 	
 
+	Fill_pedidos();
 	
 	while(!glfwWindowShouldClose(window)){
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		
-		GLuint loc = glGetUniformLocation(mapa["Borde"], "model");
 		glBindVertexArray(VAO);
+		
+		if(SELECT_REBANDA != -1 && !pedidos.empty()){
+			anim_timer += deltaTime;
+
+			if(anim_timer >= anim_interval){
+				anim_timer = 0.0f;
+
+				auto top = pedidos.front();
+				pedidos.pop();
+
+				Matrix* mat = circulo_inicial.sectores[SELECT_REBANDA].Get_Matrix();
+				mat->UpdateView(top.type, top.values.first, top.values.second);
+			}
+		}
+		
 		for(int i=0;i<circulo_inicial.sectores.size();i++){
 			Sector& s= circulo_inicial.sectores[i];
 			
