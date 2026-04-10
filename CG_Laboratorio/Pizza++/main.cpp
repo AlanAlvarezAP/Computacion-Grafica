@@ -377,6 +377,7 @@ void print_menu() {
 	std::cout << "|  f. Rotar inverso (0.1)         |" << std::endl;
 	std::cout << "|  g. Escalar (1.1)               |" << std::endl;
 	std::cout << "|  h. Escalar inverso (0.9)       |" << std::endl;
+	std::cout << "|  x. Llenar pedidos              |" << std::endl;
     std::cout << "|  4. Mover arriba (Flecha arr)   |" << std::endl;
     std::cout << "|  5. Mover abajo (Flecha abj)    |" << std::endl;
     std::cout << "|  6. Mover derecha (Flecha der)  |" << std::endl;
@@ -425,8 +426,6 @@ int main(){
 	GLuint oreganoLoc = glGetUniformLocation(mapa["Oregano"], "model");
 	GLuint pinaLoc = glGetUniformLocation(mapa["Pina"],"model");
 	
-
-	Fill_pedidos();
 	
 	while(!glfwWindowShouldClose(window)){
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
