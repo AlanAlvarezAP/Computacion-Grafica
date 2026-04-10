@@ -6,6 +6,7 @@ struct Input_step{
 	char type;
 	std::pair<float,float> values;
 	int frames;
+	char axis;
 };
 
 class Point{

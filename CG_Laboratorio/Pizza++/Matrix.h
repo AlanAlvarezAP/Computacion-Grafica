@@ -54,28 +54,76 @@ public:
 		matrixMulti(matrix,tmp);
 	}
 	
-	void rotate_norm(float ang){
+	void rotate_norm(float ang,char axis){
 		ang*=PI/180.0f;
+		
 		std::vector<float> tmp(16);
 		Restart_Identity(tmp);
 		
-		tmp[0]=std::cos(ang);
-		tmp[1]=std::sin(ang);
-		tmp[4]=-std::sin(ang);
-		tmp[5]=std::cos(ang);
+		switch(axis){
+			case 'x':{
+				tmp[5]=std::cos(ang);
+				tmp[6]=-std::sin(ang);
+				tmp[9]=std::sin(ang);
+				tmp[10]=std::cos(ang);
+				break;
+			}
+			case 'y':{
+				tmp[0]=std::cos(ang);
+				tmp[2]=std::sin(ang);
+				tmp[8]=-std::sin(ang);
+				tmp[10]=std::cos(ang);
+				break;
+			}
+			case 'z':{
+				tmp[0]=std::cos(ang);
+				tmp[1]=std::sin(ang);
+				tmp[4]=-std::sin(ang);
+				tmp[5]=std::cos(ang);
+				break;
+			}
+			default:{
+				std::cout << "Axis desconocido :( " << std::endl;
+				break;
+			}
+		}
 		
 		matrixMulti(matrix,tmp);
 	}
 	
-	void rotate_inv(float ang){
+	void rotate_inv(float ang,char axis){
 		ang*=PI/180.0f;
+		
 		std::vector<float> tmp(16);
 		Restart_Identity(tmp);
 		
-		tmp[0]=std::cos(ang);
-		tmp[1]=-std::sin(ang);
-		tmp[4]=std::sin(ang);
-		tmp[5]=std::cos(ang);
+		switch(axis){
+			case 'x':{
+				tmp[5]=std::cos(ang);
+				tmp[6]=std::sin(ang);
+				tmp[9]=-std::sin(ang);
+				tmp[10]=std::cos(ang);
+				break;
+			}
+			case 'y':{
+				tmp[0]=std::cos(ang);
+				tmp[2]=-std::sin(ang);
+				tmp[8]=std::sin(ang);
+				tmp[10]=std::cos(ang);
+				break;
+			}
+			case 'z':{
+				tmp[0]=std::cos(ang);
+				tmp[1]=-std::sin(ang);
+				tmp[4]=std::sin(ang);
+				tmp[5]=std::cos(ang);
+				break;
+			}
+			default:{
+				std::cout << "Axis desconocido :( " << std::endl;
+				break;
+			}
+		}
 		
 		matrixMulti(matrix,tmp);
 	}
@@ -100,7 +148,7 @@ public:
 		matrixMulti(matrix,tmp);
 	}
 	
-	void UpdateView(char tpe,float first_val,float second_val=0.0f){
+	void UpdateView(char tpe,float first_val,float second_val=0.0f,char axis='z'){
 		this->type=tpe;
 		switch(type){
 			case 'a':{
@@ -112,11 +160,11 @@ public:
 				break;
 			}
 			case 'd':{
-				rotate_norm(first_val);
+				rotate_norm(first_val,axis);
 				break;
 			}
 			case 'f':{
-				rotate_inv(first_val);
+				rotate_inv(first_val,axis);
 				break;
 			}
 			case 'g':{

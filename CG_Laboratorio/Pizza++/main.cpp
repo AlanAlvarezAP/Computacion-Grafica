@@ -27,7 +27,6 @@ std::vector<GLuint> indices;
 std::queue<Input_step> pedidos;
 GLuint VAO,VBO,EBO;
 const float RADIUS=0.5f;
-float anim_timer = 0.0f,anim_interval = 0.05f,deltaTime = 0.016;
 std::string input="";
 unsigned int NUM_REBANADAS=4,SELECT_REBANDA=-1;
 bool configurando=false,select_rebanada=false,queueing=false;
@@ -77,13 +76,41 @@ void framebuffer_size_callback(GLFWwindow* window,int width,int height){
 }
 
 void Fill_pedidos(){
-	const float STEPS=60.0f;
-	float step=0.1f/STEPS;
-	for(float i=step;i<0.1f;i+=step){
-		pedidos.push(Input_step{'a',{i,0.0f}});
-		pedidos.push(Input_step{'d',{i,0.0f}});
-	}
-	
+	const float STEPS=120.0f;
+	const float ANGLE=90.0f;
+	const float MOVEMENT=0.1f;
+	float step=MOVEMENT/STEPS;
+	float step_angle=ANGLE/STEPS;
+    for(int i = 0; i < (int)STEPS; i++){
+        pedidos.push(Input_step{'a', {step, 0.0f}, 'x'});
+    }
+    for(int i = 0; i < (int)STEPS; i++){
+        pedidos.push(Input_step{'d', {step_angle, 0.0f}, 120, 'z'});
+    }
+	for(int i = 0; i < (int)STEPS; i++){
+        pedidos.push(Input_step{'f', {step_angle, 0.0f}, 120, 'z'});
+    }
+    /*for(int i = 0; i < (int)STEPS; i++){
+        pedidos.push(Input_step{'a', {0.0f, step},120, 'x'});
+    }*/
+	for(int i = 0; i < (int)STEPS; i++){
+        pedidos.push(Input_step{'d', {step_angle, 0.0f}, 120,'y'});
+    }
+	for(int i = 0; i < (int)STEPS; i++){
+        pedidos.push(Input_step{'f', {step_angle, 0.0f}, 120, 'y'});
+    }
+    /*for(int i = 0; i < (int)STEPS; i++){
+        pedidos.push(Input_step{'a', {-step, 0.0f},120, 'x'});
+    }*/
+	for(int i = 0; i < (int)STEPS; i++){
+        pedidos.push(Input_step{'d', {step_angle, 0.0f}, 120, 'x'});
+    }
+	for(int i = 0; i < (int)STEPS; i++){
+        pedidos.push(Input_step{'f', {step_angle, 0.0f}, 120, 'x'});
+    }
+    /*for(int i = 0; i < (int)STEPS; i++){
+        pedidos.push(Input_step{'a', {0.0f, -step},120, 'x'});
+    }*/
 }
 
 void set_Vs(){
@@ -273,6 +300,14 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 			mat->UpdateView('g',0.9,0.9);
 			break;
 		}
+		case GLFW_KEY_X:{
+			if(SELECT_REBANDA == -1){
+				std::cout << " REBANADA SIN SELECCIONAR " << std::endl;
+				break;
+			}
+			Fill_pedidos();
+			break;
+		}
 		default:{
 			break;
 		}
@@ -355,7 +390,7 @@ int main(){
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
 	
-	GLFWwindow* window=glfwCreateWindow(800,600,"Animación basica",NULL,NULL);
+	GLFWwindow* window=glfwCreateWindow(900,900,"Animación basica",NULL,NULL);
 	if(!window){
 		std::cout << "Windows didn't charge" << std::endl;
 		glfwTerminate();
@@ -401,17 +436,11 @@ int main(){
 		glBindVertexArray(VAO);
 		
 		if(SELECT_REBANDA != -1 && !pedidos.empty()){
-			anim_timer += deltaTime;
+			auto top = pedidos.front();
+			pedidos.pop();
 
-			if(anim_timer >= anim_interval){
-				anim_timer = 0.0f;
-
-				auto top = pedidos.front();
-				pedidos.pop();
-
-				Matrix* mat = circulo_inicial.sectores[SELECT_REBANDA].Get_Matrix();
-				mat->UpdateView(top.type, top.values.first, top.values.second);
-			}
+			Matrix* mat = circulo_inicial.sectores[SELECT_REBANDA].Get_Matrix();
+			mat->UpdateView(top.type, top.values.first, top.values.second,top.axis);
 		}
 		
 		for(int i=0;i<circulo_inicial.sectores.size();i++){
@@ -443,7 +472,6 @@ int main(){
 			
 		}
 		glBindVertexArray(0);
-		
 		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
