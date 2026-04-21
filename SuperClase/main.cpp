@@ -207,7 +207,7 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 				break;
 			}
 			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
-			mat->UpdateView('f',10.0f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('f',10.0f,0.0f,0.0f,CURRENT_AXIS);
 			break;
 		}
 		case GLFW_KEY_G:{
@@ -305,10 +305,10 @@ int main(){
 
 	set_Vs();
 	//mundito->print(mundito->root);
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 	while(!glfwWindowShouldClose(window)){
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT); //| GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glBindVertexArray(VAO);
 		glPointSize(8.0f);
