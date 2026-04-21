@@ -22,6 +22,7 @@
 #include <string>
 
 #include "Shape.h"
+#include "Builder.h"
 
 World* mundito;
 GLuint VAO,VBO,EBO;
@@ -54,53 +55,7 @@ void set_Vs(){
 	glBindVertexArray(0);
 	
 }
-void Generate_Scene(){
-	if(mundito){
-		delete mundito;
-	}
-	mundito = new World();
-    
-    Point centro = {0.0f, 0.0f, 0.0f};
-    Pizza* pizza = new Pizza(mundito, centro, NUM_REBANADAS, 0.5f);
-    mundito->root = pizza;
-    pizza->Generate();
-    
-    for(int i = 0; i < (int)pizza->children.size(); i++){
-        Sector* sec = dynamic_cast<Sector*>(pizza->children[i]);
-        if(!sec){
-			continue;
-		}
-        
-        sec->ModifiedShaderColor(234.0f/255.0f,184.0f/255.0f,133.0f/255.0f);
-        
 
-        
-        // pepperonis
-        for(int j = 0; j < 3; j++){
-            Pepperoni* pep = new Pepperoni(mundito, *sec, *pizza, i, 0.05f);
-            pep->ModifiedShaderColor(177.0f/255.0f,58.0f/255.0f,18.0f/255.0f);
-            sec->AddChildren(pep);
-            pep->Generate();
-        }
-        
-        // piñas
-        for(int j = 0; j < 2; j++){
-            Piña* pina = new Piña(mundito, *sec, *pizza, i);
-            pina->ModifiedShaderColor(242.0f/255.0f,197.0f/255.0f,13.0f/255.0f);
-            sec->AddChildren(pina);
-            pina->Generate();
-        }
-        
-        // oregano
-        for(int j = 0; j < 20; j++){
-            Oregano* ore = new Oregano(mundito, *sec);
-            ore->ModifiedShaderColor(135.0f/255.0f,150.0f/255.0f,80.0f/255.0f);
-            sec->AddChildren(ore);
-            ore->Generate();
-        }
-    }
-	set_Vs();
-}
 
 void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 	if(action != GLFW_PRESS){
@@ -177,7 +132,9 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 			break;
 		}
 		case GLFW_KEY_Q:{
-			Generate_Scene();
+			//Builder::BuildPizzaScene(mundito,NUM_REBANADAS);
+			Builder::BuildPyramidScene(mundito,1.0f);
+			set_Vs();
 			break;
 		}
 		case GLFW_KEY_W:{
@@ -337,15 +294,21 @@ int main(){
 		return -1;
 	}
 	
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	
 	glfwSetKeyCallback(window,key_callback);
 	glfwSetFramebufferSizeCallback(window,framebuffer_size_callback);
 	
 	print_menu();
-	Generate_Scene();
+	//Builder::BuildPizzaScene(mundito,NUM_REBANADAS);
+	Builder::BuildPyramidScene(mundito,1.0f);
+
+	set_Vs();
 	//mundito->print(mundito->root);
+	//glEnable(GL_DEPTH_TEST);
 	while(!glfwWindowShouldClose(window)){
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT); //| GL_DEPTH_BUFFER_BIT);
 		
 		glBindVertexArray(VAO);
 		glPointSize(8.0f);
