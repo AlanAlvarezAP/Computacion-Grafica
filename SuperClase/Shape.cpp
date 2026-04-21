@@ -1,10 +1,8 @@
 #include "Shape.h"
 
-#define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-
 
 World::World(){
 	root=nullptr;
@@ -18,20 +16,56 @@ void World::DrawShape(){
     root->DrawShape(identity);
 }
 
-ShapeNode::ShapeNode(World* world,std::vector<unsigned int> EBOs,GLenum prim){
-	this->world=world;
-	this->EBOs_range=EBOs;
-	this->primitive=prim;
+std::vector<unsigned int> World::Add_Batch(std::vector<float>& vectors,std::vector<unsigned int>& indices,unsigned int& offset){
+	unsigned int inicio=all_EBOs.size();
+	offset=inicio;
+	all_vertices.insert(all_vertices.end(),vectors.begin(),vectors.end());
+	all_EBOs.insert(all_EBOs.end(),indices.begin(),indices.end());
+	return std::vector<unsigned int>(all_EBOs.begin()+inicio,all_EBOs.end());
+	
 }
 
-ShapeNode::~SceneNode(){
+void World::print(ShapeNode* rot){
+	if(!rot || (int)rot->children.size() <= 0){
+		return;
+	}
+	
+	if(root == rot){
+		std::cout << " DATOS GENERALES " << std::endl;
+		std::cout << " ALL VERTICES -> " << this->all_vertices.size() << std::endl;
+		std::cout << " ALL INDICES -> " << this->all_EBOs.size() << std::endl;
+	}
+	
+	std::cout << "==============================" << std::endl;
+	std::cout << "THIS -> " << rot->name << " and size " << rot->EBOs_range.size() << " and offset of " << rot->offset << std::endl;
+	std::cout << "==============================" << std::endl;
+	std::cout << "----------------------------------------------------" << std::endl;
+	for(int i=0;i<rot->children.size();i++){
+		std::cout << "Val -> " << rot->children[i]->name << " and size " << rot->children[i]->EBOs_range.size() << " and offset of " << rot->children[i]->offset << std::endl;
+	}
+	std::cout << "----------------------------------------------------" << std::endl;
+	std::cout << "----------------------------------------------------" << std::endl;
+	for(auto p:rot->children){
+		print(p);
+	}
+}
+
+ShapeNode::ShapeNode(World* world,unsigned int prim,const std::string &nam){
+	this->world=world;
+	this->primitive=prim;
+	this->parent=nullptr;
+	this->name=nam;
+	this->offset=0;
+}
+
+ShapeNode::~ShapeNode(){
 	for (auto son:children){
 		delete son;
 	}
 }
 
 bool ShapeNode::IsLeaf(){
-	if(!this->EBOs_range.empty()){
+	if(!(this->EBOs_range.empty())){
 		return true;
 	}
 	return false;
@@ -48,19 +82,353 @@ void ShapeNode::ModifiedShaderTransform(const char &tpe,const float &first_val,f
 }
 
 void ShapeNode::ModifiedShaderColor(const float &r,const float &g,const float &b){
+	this->r=r;
+	this->g=g;
+	this->b=b;
 	this->Shader.SetColor(r,g,b);
 }
 
 void ShapeNode::DrawShape(const Matrix& parent){
 	Matrix global = parent * this->Mat;
+	this->Shader.use();
 	this->Shader.SetMatrix(global);
-	
+	this->Shader.SetColor(this->r, this->g, this->b);
 	if(IsLeaf()){
-		glDrawElements(primitive,EBOs_range.size(),GL_UNSIGNED_INT,(void*)((EBOs_range[0])*sizeof(unsigned int)));
-		return;
-	}
+        Sector* sec = dynamic_cast<Sector*>(this);
+        if(sec){
+            glDrawElements(primitive,EBOs_range.size()-sec->lines_Start,GL_UNSIGNED_INT,(void*)((this->offset)*sizeof(unsigned int)));
+			
+			this->Shader.SetColor(217.0f/255.0f,129.0f/255.0f,63.0f/255.0f);
+            glDrawElements(GL_LINES,EBOs_range.size()-sec->sector_Start,GL_UNSIGNED_INT,(void*)((this->offset+(EBOs_range.size()-sec->lines_Start))*sizeof(unsigned int)));
+        }
+        else{
+            glDrawElements(primitive,EBOs_range.size(),GL_UNSIGNED_INT,(void*)(offset*sizeof(unsigned int)));
+        }
+    }
 	
 	for(auto son : children){
         son->DrawShape(global);
 	}
 }
+
+// -------------- LISTA DE POSIBLES FIGURAS POLIMORFICAS -------------
+// Circulo
+Circle::Circle(World* world,const Point &cent,const float &rad,const int &num_seg):ShapeNode(world,GL_TRIANGLES,"Circulo"),center(cent),radius(rad),number_segments(num_seg){}
+
+void Circle::Generate(){
+	std::vector<float> vectores;
+	std::vector<unsigned int> indices;
+	
+	float angle_between=(2*PI)/number_segments;
+	
+	unsigned int base = this->world->all_vertices.size()/3;
+	unsigned int base_tmp=base+1;
+	
+	vectores.push_back(center.x);
+	vectores.push_back(center.y);
+	vectores.push_back(center.z);
+	
+	vectores.push_back(center.x + radius);
+	vectores.push_back(center.y);
+	vectores.push_back(center.z);
+	
+	for(float i=1;i<=number_segments;i++){
+		float ang = i * angle_between;
+		vectores.push_back(center.x+radius*std::cos(ang));
+        vectores.push_back(center.y+radius*std::sin(ang));
+        vectores.push_back(0.0f);
+        
+        indices.push_back(base);
+        indices.push_back(base_tmp);
+        indices.push_back(++base_tmp);
+	}
+	
+	this->EBOs_range = this->world->Add_Batch(vectores, indices,offset);
+	
+}
+
+// PIZZA
+Pizza::Pizza(World* world,const Point& cent,const int& amount_sec,const float& rad):ShapeNode(world,0,"Pizza"),center(cent),amount_sector(amount_sec),RADIUS(rad){}
+
+
+// PARA 2D -> TODO ver en 3D
+int Pizza::Get_Sector(Point evaluate,const float radio){
+	if(this->children.empty()){
+		return -1;
+	}
+	
+	if (evaluate.x*evaluate.x + evaluate.y*evaluate.y > radio*radio){
+        return -1;
+	}
+	
+	// Evaluar esto tdv por el caso en z
+	float ang=std::atan2(evaluate.y,evaluate.x);
+	if(ang < 0){
+		ang+=2*PI;
+	}
+	for(int i=0;i<this->children.size();i++){
+		Sector *sect=dynamic_cast<Sector*>(this->children[i]);
+		if(!sect){
+			continue;
+		}
+		Point* start=&(sect->startPoint);
+		Point* end=&(sect->endPoint);
+		if (start->angle <= end->angle){
+            if (ang > start->angle && ang < end->angle){
+                return i;
+			}
+        }
+        else{
+            if (ang > start->angle || ang < end->angle){
+                return i;
+			}
+        }
+	}
+	return -1;
+}
+void Pizza::Generate(){
+	float final_sectors_display=360.0f/(float)amount_sector;
+	
+	const int NUMBER_SEGMENTS=10;
+	const float TRANSFORM=PI/180.0f;
+	
+	int sector_index = 0;
+	for(float i=0.0f;i<360.0f;i+=final_sectors_display,sector_index++){
+		Point start={
+			center.x+RADIUS*std::cos(i*TRANSFORM),
+			center.y+RADIUS*std::sin(i*TRANSFORM),
+			0.0f,
+			i*TRANSFORM
+		};
+		Point end={center.x+RADIUS*std::cos((i+final_sectors_display)*TRANSFORM),
+			center.y+RADIUS*std::sin((i+final_sectors_display)*TRANSFORM),
+			360.0f,
+			(i+final_sectors_display)*TRANSFORM
+		};
+		Sector *sec = new Sector(world,start,end,center,RADIUS,NUMBER_SEGMENTS);
+		this->AddChildren(sec);
+		
+		/*
+		// Para el pepperoni
+		for(int j=0;j<3;j++){
+			Pepperoni* pep = new Pepperoni(world,*sec,*this,sector_index,0.05f);
+			sec->AddChildren(pep);
+		}
+		
+		// Para la piña
+		for(int j=0;j<2;j++){
+			Piña* pina = new Piña(world,*sec,*this,sector_index);
+			sec->AddChildren(pina);
+		}
+		
+		// Para el oregano
+		for(int j=0;j<20;j++){
+			Oregano* ore=new Oregano(world,*sec);
+			sec->AddChildren(ore);
+		}*/
+		sec->Generate();
+		
+	}
+	
+}
+
+Sector::Sector(World* world,const Point& start_point,const Point& end_point,const Point& centro,const float &rad,const int &num_seg):ShapeNode(world,GL_TRIANGLES,"Sector"),startPoint(start_point),endPoint(end_point),center(centro),number_segments(num_seg),radius(rad),sector_Start(0),lines_Start(0){}
+
+void Sector::Generate(){
+	std::vector<float> vectores;
+	std::vector<unsigned int> indices;
+	std::vector<unsigned int> borderVertex;
+	float angle_between=(endPoint.angle-startPoint.angle)/number_segments;
+	
+	unsigned int base = this->world->all_vertices.size()/3;
+	unsigned int base_tmp_triang=base+1;
+	unsigned int base_tmp_lines=base+1;
+	
+	vectores.push_back(center.x);
+	vectores.push_back(center.y);
+	vectores.push_back(center.z);
+	
+	vectores.push_back(startPoint.x);
+	vectores.push_back(startPoint.y);
+	vectores.push_back(startPoint.z);
+	
+	borderVertex.push_back(base);
+	borderVertex.push_back(base_tmp_lines);
+	
+	for(float i=1;i<=number_segments;i++){
+		float ang = startPoint.angle + i * angle_between;
+		vectores.push_back(center.x+radius*std::cos(ang));
+        vectores.push_back(center.y+radius*std::sin(ang));
+        vectores.push_back(0.0f);
+        
+        indices.push_back(base);
+        indices.push_back(base_tmp_triang);
+		indices.push_back(++base_tmp_triang);
+		
+		
+	}
+	for(int i=0;i<number_segments;i++){
+		borderVertex.push_back(base_tmp_lines+i);
+		borderVertex.push_back(base_tmp_lines+i+1);
+	}
+	borderVertex.push_back(base_tmp_lines+number_segments);
+	borderVertex.push_back(base);	
+	/*std::cout << "------------------ VERTICES --------------------" << std::endl;
+	for(int i=0;i<vectores.size();i+=3){
+		std::cout << "Vertice " << i/3 << " : " << vectores[i] << " - " << vectores[i+1] << " - " << vectores[i+2] << std::endl;
+	}
+	std::cout << "-------------------------------------------------" << std::endl;
+	
+	std::cout << "----------------- INDICES SECTOR ---------------" << std::endl;;
+	for(auto p:indices){
+		std::cout << p << std::endl;
+	}
+	std::cout << "-------------------------------------------------" << std::endl;
+	
+	std::cout << "----------------- INDICES BORDE ---------------" << std::endl;;
+	for(auto p:borderVertex){
+		std::cout << p << std::endl;
+	}
+	std::cout << "-------------------------------------------------" << std::endl;*/
+	
+	this->sector_Start=indices.size();
+	indices.insert(indices.end(),borderVertex.begin(),borderVertex.end());
+	this->EBOs_range = this->world->Add_Batch(vectores, indices,offset);
+	this->lines_Start=indices.size()-this->sector_Start;
+	/*std::cout << "VALOR DEBUG " << std::endl;
+	std::cout << "TAM ACTUAL INDICES " << indices.size() << std::endl;
+	std::cout << "lines_Start START " << this->lines_Start << std::endl;
+    for(auto son : children){
+        son->Generate();
+    }*/
+}
+
+Oregano::Oregano(World* world,Sector& sec):ShapeNode(world,GL_POINTS,"Oregano"),sectorOwn(&sec){}
+
+void Oregano::Generate(){
+	std::random_device rd;
+    std::mt19937 gen(rd());
+	float starting_radius=0.1f;
+	
+	Sector* pat=this->sectorOwn;
+	
+	Point start_center;
+	float radius;
+	float angulo;
+	std::uniform_real_distribution<> dist_angle(pat->startPoint.angle, pat->endPoint.angle);
+	angulo = dist_angle(gen);
+	
+	std::uniform_real_distribution<> dist_radius(0.2f, 0.4f);
+	radius = dist_radius(gen);
+	
+	start_center=Point{radius*std::cos(angulo),radius*std::sin(angulo),0.0f,angulo};
+	
+	unsigned int tama=world->all_vertices.size()/3;
+	unsigned int inicio = world->all_EBOs.size();
+	world->all_vertices.push_back(start_center.x);
+	world->all_vertices.push_back(start_center.y);
+	world->all_vertices.push_back(start_center.z);
+	
+	world->all_EBOs.push_back(tama);
+	this->offset = inicio;
+	this->EBOs_range = std::vector<unsigned int>(world->all_EBOs.end()-1, world->all_EBOs.end());
+}
+
+Pepperoni::Pepperoni(World* world,Sector& sec,Pizza& piz,int idx,const float& rad):ShapeNode(world,GL_TRIANGLES,"Pepperoni"),sectorOwn(&sec),pizzaOwn(&piz),target_index(idx),radius(rad){}
+
+void Pepperoni::Generate(){
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    Sector* pat=this->sectorOwn;
+    float starting_radius=radius;
+    float MIN_RADIUS=0.005f;
+    int intentos=0;
+    Point start_center;
+    bool  result = false;
+    do {
+        std::uniform_real_distribution<float> dist_angle(pat->startPoint.angle,pat->endPoint.angle);
+        std::uniform_real_distribution<float> dist_radius(starting_radius,pat->radius - starting_radius);
+        float angulo=dist_angle(gen);
+        float radius=dist_radius(gen);
+        start_center={radius * std::cos(angulo),radius * std::sin(angulo),0.0f,angulo};
+        bool Cond_1=pizzaOwn->Get_Sector({start_center.x + starting_radius,start_center.y, 0.0f, angulo}, pat->radius)== target_index;
+        bool Cond_2=pizzaOwn->Get_Sector({start_center.x - starting_radius,start_center.y, 0.0f, angulo}, pat->radius)== target_index;
+        bool Cond_3 = pizzaOwn->Get_Sector({start_center.x,start_center.y + starting_radius, 0.0f, angulo},pat->radius)== target_index;
+        bool Cond_4 = pizzaOwn->Get_Sector({start_center.x,start_center.y - starting_radius, 0.0f, angulo},pat->radius)== target_index;
+        result=Cond_1 && Cond_2 && Cond_3 && Cond_4;
+        if(!result && intentos > 20){
+            starting_radius *= 0.5f;
+            if(starting_radius < MIN_RADIUS) return;
+            intentos = 0;
+        }
+        intentos++;
+
+    } while(!result);
+    Circle* circ = new Circle(world, start_center, starting_radius, 10);
+    circ->Generate();
+	this->EBOs_range=circ->EBOs_range;
+	this->offset=circ->offset;
+	delete circ;
+}
+
+Piña::Piña(World* world, Sector& sec, Pizza& piz, int idx):ShapeNode(world,GL_TRIANGLES,"Piña"),sectorOwn(&sec),pizzaOwn(&piz),target_index(idx) {}
+
+void Piña::Generate(){
+	std::random_device rd;
+    std::mt19937 gen(rd());
+	float starting_radius=0.1f;
+	float MIN_RADIUS = 0.005f;
+	int intentos=0;
+	Sector* pat=this->sectorOwn;
+	
+	Point start_center;
+	float radius;
+	float angulo;
+	bool result=false;
+	do{
+		std::uniform_real_distribution<> dist_angle(pat->startPoint.angle, pat->endPoint.angle);
+		angulo = dist_angle(gen);
+		
+		std::uniform_real_distribution<> dist_radius(0.2f, 0.4f);
+		radius = dist_radius(gen);
+		
+		start_center=Point{radius*std::cos(angulo),radius*std::sin(angulo),0.0f,angulo};
+		result = true;
+		bool Cond_1 = pizzaOwn->Get_Sector({start_center.x + starting_radius, start_center.y, 0.0f, angulo}, pat->radius) == target_index;
+		bool Cond_2 = pizzaOwn->Get_Sector({start_center.x - starting_radius, start_center.y, 0.0f, angulo}, pat->radius) == target_index;
+		bool Cond_3 = pizzaOwn->Get_Sector({start_center.x, start_center.y + starting_radius, 0.0f, angulo}, pat->radius) == target_index;
+		bool Cond_4 = pizzaOwn->Get_Sector({start_center.x, start_center.y - starting_radius, 0.0f, angulo}, pat->radius) == target_index;
+		result = Cond_1 && Cond_2 && Cond_3 && Cond_4;
+		if(!result && intentos > 20){
+			starting_radius*=0.5f;
+			if(starting_radius < MIN_RADIUS){
+				return;
+			}
+		}
+		intentos++;
+	}while(!result);
+	
+	unsigned int tama=world->all_vertices.size()/3;
+	unsigned int inicio = world->all_EBOs.size();
+	world->all_vertices.push_back(start_center.x);
+	world->all_vertices.push_back(start_center.y);
+	world->all_vertices.push_back(start_center.z);
+	
+	world->all_vertices.push_back(start_center.x - starting_radius);
+	world->all_vertices.push_back(start_center.y);
+	world->all_vertices.push_back(start_center.z);
+	
+	world->all_vertices.push_back(start_center.x);
+	world->all_vertices.push_back(start_center.y + starting_radius);
+	world->all_vertices.push_back(start_center.z);
+	
+	world->all_EBOs.push_back(tama++);
+	world->all_EBOs.push_back(tama++);
+	world->all_EBOs.push_back(tama);
+	this->offset = inicio;
+	this->EBOs_range = std::vector<unsigned int>(world->all_EBOs.end()-3, world->all_EBOs.end());
+	
+}
+
+

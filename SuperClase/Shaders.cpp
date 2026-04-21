@@ -1,10 +1,23 @@
 #include "Shaders.h"
 #include "Matrix.h"
 
-#define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
+const char* vertex_shader="#version 330 core\n"
+"layout (location=0) in vec3 inVec;\n"
+"uniform mat4 model;\n"
+"void main(){\n"
+"	gl_Position=model*vec4(inVec.xyz,1.0f);\n"	
+"}\n";
+
+const char* fragment_shader="#version 330 core\n"
+"uniform vec3 ouCol;\n"
+"out vec4 outColor;\n"
+"void main(){\n"
+"	outColor=vec4(ouCol.rgb,1.0f);\n"
+"}\n";
 
 Shaders::Shaders(){
 	int sucess;
@@ -61,7 +74,7 @@ void Shaders::SetColor(const float &r,const float &g,const float &b){
 		return;
 	}
 	
-	glUniform3f(Color_loc,r,g,b,1.0f);
+	glUniform3f(Color_loc,r,g,b);
 }
 
 void Shaders::SetMatrix(const Matrix& mat){

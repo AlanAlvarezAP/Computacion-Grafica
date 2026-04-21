@@ -21,45 +21,301 @@
 #include <iostream>
 #include <string>
 
+#include "Shape.h"
 
+World* mundito;
 GLuint VAO,VBO,EBO;
-
-
-
-float triangle_vec[]={
-	-0.3f,-0.2f,0.0f,1.0f,0.0f,0.0f,
-	0.3f,-0.2f,0.0f,0.0f,1.0f,0.0f,
-	0.0f,0.4f,0.0f,0.0f,0.0f,1.0f
-};
-
-GLuint indices[]={
-	0,1,2
-};
+unsigned int NUM_REBANADAS=4,SELECT_REBANDA=-1;
+std::string input="";
+bool configurando=false,select_rebanada=false,queueing=false,everyone_scale=false;
+char CURRENT_AXIS = 'z';
 
 
 void framebuffer_size_callback(GLFWwindow* window,int width,int height){
 	glViewport(0,0,width,height);
 }
+void set_Vs(){
+	glGenVertexArrays(1,&VAO);
+	glGenBuffers(1,&VBO);
+	glGenBuffers(1,&EBO);
+	
+	glBindVertexArray(VAO);
+	
+	glBindBuffer(GL_ARRAY_BUFFER,VBO);
+	glBufferData(GL_ARRAY_BUFFER,mundito->all_vertices.size()*sizeof(float),mundito->all_vertices.data(),GL_DYNAMIC_DRAW);
 
+	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,mundito->all_EBOs.size()*sizeof(unsigned int),mundito->all_EBOs.data(),GL_DYNAMIC_DRAW);
+	
+	glEnableVertexAttribArray(0);
+	
+	glBindVertexArray(0);
+	
+}
+void Generate_Scene(){
+	if(mundito){
+		delete mundito;
+	}
+	mundito = new World();
+    
+    Point centro = {0.0f, 0.0f, 0.0f};
+    Pizza* pizza = new Pizza(mundito, centro, NUM_REBANADAS, 0.5f);
+    mundito->root = pizza;
+    pizza->Generate();
+    
+    for(int i = 0; i < (int)pizza->children.size(); i++){
+        Sector* sec = dynamic_cast<Sector*>(pizza->children[i]);
+        if(!sec){
+			continue;
+		}
+        
+        sec->ModifiedShaderColor(234.0f/255.0f,184.0f/255.0f,133.0f/255.0f);
+        
+
+        
+        // pepperonis
+        for(int j = 0; j < 3; j++){
+            Pepperoni* pep = new Pepperoni(mundito, *sec, *pizza, i, 0.05f);
+            pep->ModifiedShaderColor(177.0f/255.0f,58.0f/255.0f,18.0f/255.0f);
+            sec->AddChildren(pep);
+            pep->Generate();
+        }
+        
+        // piñas
+        for(int j = 0; j < 2; j++){
+            Piña* pina = new Piña(mundito, *sec, *pizza, i);
+            pina->ModifiedShaderColor(242.0f/255.0f,197.0f/255.0f,13.0f/255.0f);
+            sec->AddChildren(pina);
+            pina->Generate();
+        }
+        
+        // oregano
+        for(int j = 0; j < 20; j++){
+            Oregano* ore = new Oregano(mundito, *sec);
+            ore->ModifiedShaderColor(135.0f/255.0f,150.0f/255.0f,80.0f/255.0f);
+            sec->AddChildren(ore);
+            ore->Generate();
+        }
+    }
+	set_Vs();
+}
 
 void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
+	if(action != GLFW_PRESS){
+		return;
+	}
 	switch(key){
 		case GLFW_KEY_ESCAPE:{
-			std::cout << "ESC presionado saliendo..." << std::endl;
-			glfwSetWindowShouldClose(window,GLFW_TRUE);
+			if(!input.empty()){
+				input = "";
+				configurando = false;
+				std::cout << "Cancelado." << std::endl;
+			} else {
+				glfwSetWindowShouldClose(window, GLFW_TRUE);
+			}
 			break;
 		}
 		case GLFW_KEY_C:{
-			if(mods & GLFW_MOD_CONTROL){
-				std::cout << "CTRL+C presionado saliendo..." << std::endl;
-				glfwSetWindowShouldClose(window,GLFW_TRUE);
+			if(!input.empty()){
+				input = "";
+				configurando = false;
+				std::cout << "Cancelado." << std::endl;
+			}else{
+				if(mods & GLFW_MOD_CONTROL){
+					std::cout << "CTRL+C presionado saliendo..." << std::endl;
+					glfwSetWindowShouldClose(window,GLFW_TRUE);
+				}
 			}
+			
+			break;
+		}
+		case GLFW_KEY_0:
+		case GLFW_KEY_1:
+		case GLFW_KEY_2:
+		case GLFW_KEY_3:
+		case GLFW_KEY_4:
+		case GLFW_KEY_5:
+		case GLFW_KEY_6:
+		case GLFW_KEY_7:
+		case GLFW_KEY_8:
+		case GLFW_KEY_9:{
+			input+=(char)('0' + (key - GLFW_KEY_0));
+			std::cout << " Se leyo " << input << std::endl;
+			break;
+		}
+		case GLFW_KEY_BACKSPACE:{
+			if(!input.empty()){
+				input.pop_back();
+			}
+			break;
+		}
+		case GLFW_KEY_ENTER:{
+			if(!input.empty()){
+				int num=std::stoi(input);
+				if(configurando){
+					if(num>0){
+						NUM_REBANADAS=num;
+						std::cout << "Rebanadas configuradas: " << num << std::endl;
+					}else{
+						std::cout << " Numero invalido < 0 " << std::endl;
+					}
+					configurando=false;
+				}else if(select_rebanada){
+					if(num >= 0 && num < static_cast<int>(mundito->root->children.size())){
+						std::cout << "Confirmando rebanada... " << input << std::endl;
+						SELECT_REBANDA=num;
+					}
+					else{
+						std::cout << "Numero invalido o rebanada no existente :( " << std::endl;
+					}
+					select_rebanada=false;
+				}
+			}
+			input="";
+			break;
+		}
+		case GLFW_KEY_Q:{
+			Generate_Scene();
+			break;
+		}
+		case GLFW_KEY_W:{
+			input = "";
+			std::cout << "Dame la cantidad de rebanadas: " << std::endl;
+			configurando=true;
+			break;
+		}
+		case GLFW_KEY_R:{
+			SELECT_REBANDA=-1;
+			input = "";
+			std::cout << "Dame la pizza a mover ... " << std::endl;
+			select_rebanada=true;
+			break;
+		}
+		case GLFW_KEY_UP:{
+			if(SELECT_REBANDA == -1){
+				Matrix* mat=&(mundito->root->Mat);
+				mat->UpdateView('a',0.0f,0.1f);
+				break;
+			}
+			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
+			mat->UpdateView('a',0.0f,0.1f);
+			break;
+		}
+		case GLFW_KEY_DOWN:{
+			if(SELECT_REBANDA == -1){
+				Matrix* mat=&(mundito->root->Mat);
+				mat->UpdateView('a',0.0f,-0.1f);
+				break;
+			}
+			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
+			mat->UpdateView('a',0.0f,-0.1f);
+			break;
+		}
+		case GLFW_KEY_RIGHT:{
+			if(SELECT_REBANDA == -1){
+				Matrix* mat=&(mundito->root->Mat);
+				mat->UpdateView('a',0.1f,0.0f);
+				break;
+			}
+			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
+			mat->UpdateView('a',0.1f,0.0f);
+			break;
+		}
+		case GLFW_KEY_LEFT:{
+			if(SELECT_REBANDA == -1){
+				Matrix* mat=&(mundito->root->Mat);
+				mat->UpdateView('a',-0.1f,0.0f);
+				break;
+			}
+			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
+			mat->UpdateView('a',-0.1f,0.0f);
+			break;
+		}
+		case GLFW_KEY_D:{
+			if(SELECT_REBANDA == -1){
+				Matrix* mat=&(mundito->root->Mat);
+				mat->UpdateView('d',10.0f,0.0f,0.0f,CURRENT_AXIS);
+				break;
+			}
+			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
+			mat->UpdateView('d',10.0f,0.0f,0.0f,CURRENT_AXIS);
+			break;
+		}
+		case GLFW_KEY_F:{
+			if(SELECT_REBANDA == -1){
+				Matrix* mat=&(mundito->root->Mat);
+				mat->UpdateView('f',10.0f,0.0f,CURRENT_AXIS);
+				break;
+			}
+			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
+			mat->UpdateView('f',10.0f,0.0f,CURRENT_AXIS);
+			break;
+		}
+		case GLFW_KEY_G:{
+			if(SELECT_REBANDA == -1){
+				Matrix* mat=&(mundito->root->Mat);
+				mat->UpdateView('g',1.1,1.1);
+				break;
+			}
+			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
+			mat->UpdateView('g',1.1,1.1);
+			break;
+		}
+		case GLFW_KEY_H:{
+			if(SELECT_REBANDA == -1){
+				Matrix* mat=&(mundito->root->Mat);
+				mat->UpdateView('g',0.9,0.9);
+				break;
+			}
+			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
+			mat->UpdateView('g',0.9,0.9);
+			break;
+		}
+		case GLFW_KEY_X:{
+			CURRENT_AXIS='x';
+			std::cout << "Eje actual:X" << std::endl;
+			break;
+		}
+		case GLFW_KEY_Y:{
+			CURRENT_AXIS='y';
+			std::cout << "Eje actual:Y" << std::endl;
+			break;
+		}
+		case GLFW_KEY_Z:{
+			CURRENT_AXIS='z';
+			std::cout << "Eje actual: Z" << std::endl;
 			break;
 		}
 		default:{
 			break;
 		}
 	}
+}
+void print_menu() {
+    std::cout << "===================================" << std::endl;
+    std::cout << "|        Bienvenido a             |" << std::endl;
+    std::cout << "|     Simulador de Pizza          |" << std::endl;
+	std::cout << "|     Control 1                   |" << std::endl;
+    std::cout << "|                                 |" << std::endl;
+    std::cout << "|  Q. Generar pizza (default=4)   |" << std::endl;
+    std::cout << "|  W. Configurar                  |" << std::endl;
+    std::cout << "|  R. Seleccion parte (0-N)       |" << std::endl;
+	std::cout << "|  d. Rotar (0.1)                 |" << std::endl;
+	std::cout << "|  f. Rotar inverso (0.1)         |" << std::endl;
+	std::cout << "|  g. Escalar (1.1)               |" << std::endl;
+	std::cout << "|  h. Escalar inverso (0.9)       |" << std::endl;
+	std::cout << "|  x. Usar eje x                  |" << std::endl;
+	std::cout << "|  y. Usar eje y                  |" << std::endl;
+	std::cout << "|  z. Usar eje z                  |" << std::endl;
+    std::cout << "|  4. Mover arriba (Flecha arr)   |" << std::endl;
+    std::cout << "|  5. Mover abajo (Flecha abj)    |" << std::endl;
+    std::cout << "|  6. Mover derecha (Flecha der)  |" << std::endl;
+	std::cout << "|  7. Mover izquierda (Flecha izq)|" << std::endl;
+    std::cout << "|  8. Salir (ESC o CTRL+C)        |" << std::endl;
+    std::cout << "===================================" << std::endl;
+	std::cout << " AL TERMINAR DE ESCRIBIR LA PARTE O CONFIGURACIÓN DE REBANDAS CONFIRMAR CON ENTER " << std::endl;
 }
 
 int main(){
@@ -84,39 +340,23 @@ int main(){
 	glfwSetKeyCallback(window,key_callback);
 	glfwSetFramebufferSizeCallback(window,framebuffer_size_callback);
 	
-	
-	
-	glGenVertexArrays(1,&VAO);
-	glGenBuffers(1,&VBO);
-	glGenBuffers(1,&EBO);
-	
-	glBindVertexArray(VAO);
-	
-	glBindBuffer(GL_ARRAY_BUFFER,VBO);
-	glBufferData(GL_ARRAY_BUFFER,sizeof(triangle_vec),triangle_vec,GL_DYNAMIC_DRAW);
-	
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(indices),indices,GL_DYNAMIC_DRAW);
-	
-	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)0);
-	glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)(3*sizeof(float)));
-	
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	
-	glBindVertexArray(0); // Para poder configurar otro VAO
-	
-	
+	print_menu();
+	Generate_Scene();
+	//mundito->print(mundito->root);
 	while(!glfwWindowShouldClose(window)){
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 		
-		//glUseProgram(program_id);
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES,3,GL_UNSIGNED_INT,0);
+		glPointSize(8.0f);
+		glLineWidth(8.0f);
+        mundito->DrawShape();
 		
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
-	
+		glBindVertexArray(0);
+		
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+	delete mundito;
+	return 0;
 }
