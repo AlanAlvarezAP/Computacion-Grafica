@@ -10,12 +10,17 @@ class ShapeNode;
 
 
 // Para realizar animaciones :D
-struct Input_step{
-	char type;
-	float value_x,value_y,value_z;
-	float angle;
-	int frames;
-	char axis;
+class Animation_Step{
+public:
+	ShapeNode* target;
+	char axis,type;
+	float value_total;
+	float duration,elapsed;
+	
+	Animation_Step(ShapeNode* targ,float durat,char tp,float val,char ax);
+	
+	void Update_animation(float dt);
+	bool finished();
 };
 
 // Para facilitarme la creación de puntos xd
@@ -30,14 +35,18 @@ public:
 	std::vector<unsigned int> all_EBOs;
 	Matrix Mat_global;
 	Shaders Shader_global;
-	ShapeNode* root;
-	std::deque<Input_step> pedidos;
+	ShapeNode* root,*activeSceneNode;
+	std::queue<Animation_Step*> pedidos_norm;
+	std::stack<Animation_Step*> pedidos_inv;
+	int globalColorCounter;
 public:
 	World();
 	~World();
 	void DrawShape();
 	std::vector<unsigned int> Add_Batch(std::vector<float>& vectors,std::vector<unsigned int>& indices,unsigned int &offset);
 	void print(ShapeNode* rot);
+	void Add_animation(Animation_Step* anim);
+	void Execute_animations(float dt,char inv);
 };
 
 
@@ -52,16 +61,22 @@ public:
 	ShapeNode* parent;
 	World* world;
 	std::string name;
+	bool IsDrawable;
+	int selected_part;
+    bool editWhole;
 public:
 	ShapeNode(World* world,unsigned int prim,const std::string &nam);
 	virtual ~ShapeNode();
-	bool IsLeaf();
 	void AddChildren(ShapeNode* son);
 	void ModifiedShaderTransform(const char &tpe,const float &first_val,float second_val,char axis);
 	void ModifiedShaderColor(const float &r,const float &g,const float &b);
 	void DrawShape(const Matrix& parent);
-	virtual void Generate() = 0;
-	virtual void DrawGeometry(const Matrix& parent)= 0;
+	void EditMode();
+	virtual void handleKey(int key, int mods,char CURRENT_AXIS) {}
+	virtual void printMenu() {}
+	virtual void Generate() {}
+	virtual void DrawGeometry(const Matrix& parent){}
+	virtual void SelectPart(int index);
 };
 
 

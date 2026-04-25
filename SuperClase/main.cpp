@@ -24,13 +24,76 @@
 #include "Shape.h"
 #include "Builder.h"
 
-World* mundito;
+World* mundito=nullptr;
 GLuint VAO,VBO,EBO;
 unsigned int NUM_REBANADAS=4,SELECT_REBANDA=-1;
 std::string input="";
-bool configurando=false,select_rebanada=false,queueing=false,everyone_scale=false;
 char CURRENT_AXIS = 'z';
+Pizza* pizza=nullptr;
+Piramid* piramid=nullptr;
+Cube* cube=nullptr;
+Sphere* sphere = nullptr;
+Tower* tower=nullptr;
+enum Configuration_type{
+	NONE,
+	SELECT_REBANADA,
+	SET_REBANADA
+};
 
+enum Input_status{
+	NORMAL,
+	CONFIGURANDO
+};
+
+enum Scene_Shapes{
+	PIZZA,
+	PYRAMID,
+	CUBE,
+	SPHERE,
+	TOWER
+};
+
+Input_status inputMode=NORMAL;
+Scene_Shapes sceneMode=PIZZA;
+Configuration_type inputContext=NONE;
+
+// a -> traslacion normal
+// s -> traslacion inv
+// d -> rotacion normal
+// f -> rotacion inv
+// g -> escala normal
+// h -> escala inv
+
+void alinear(){
+	if(pizza){
+		mundito->Add_animation(new Animation_Step(piramid, 1.0f, 'd', 90.0f, 'x'));
+		while(!mundito->pedidos_norm.empty() || !mundito->pedidos_inv.empty()){
+			mundito->Execute_animations(1.0f,'N');
+		}
+		
+	}
+	if(piramid){
+		mundito->Add_animation(new Animation_Step(piramid, 1.0f, 'd', 90.0f, 'x'));
+		while(!mundito->pedidos_norm.empty() || !mundito->pedidos_inv.empty()){
+			mundito->Execute_animations(1.0f,'N');
+		}
+	}
+	
+}
+
+void pedidos_Sphere(Sphere* sphere){
+	
+	for(int i=0;i<5;i++){
+		mundito->Add_animation(new Animation_Step(piramid, 1.0f, 'g', 1.1f, 'x'));
+	}
+	
+	
+	/*mundito->Add_animation(new Animation_Step(piramid, 2.0f, 'f', 180.0f, 'x'));
+	for(int i=0;i<10;i++){
+		mundito->Add_animation(new Animation_Step(piramid, 1.0f, 'd', 360.0f, 'y'));
+	}
+	mundito->Add_animation(new Animation_Step(piramid, 2.0f, 'd', 45.0f, 'z'));*/
+}
 
 void framebuffer_size_callback(GLFWwindow* window,int width,int height){
 	glViewport(0,0,width,height);
@@ -61,11 +124,53 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 	if(action != GLFW_PRESS){
 		return;
 	}
+	
+	if(inputMode == CONFIGURANDO){
+		if(key >= GLFW_KEY_0 && key <= GLFW_KEY_9){
+			input+=(char)('0' + (key - GLFW_KEY_0));
+			std::cout << " Se leyo " << input << std::endl;
+			return;
+		}
+		else if (key == GLFW_KEY_BACKSPACE && !input.empty()){
+			input.pop_back();
+			return;
+		}
+		else if(key == GLFW_KEY_ENTER && !input.empty()){
+			int num=std::stoi(input);
+			if(inputContext == SELECT_REBANADA){
+				auto node = mundito->activeSceneNode;
+
+				if(num >= 0 && num < (int)node->children.size()){
+					std::cout << "Confirmando seleccion... " << input << std::endl;
+					node->SelectPart(num);
+				}
+				else{
+					std::cout << "Numero invalido :( " << std::endl;
+					node->SelectPart(-1);
+				}
+				inputContext=NONE;
+			}
+			else if(inputContext == SET_REBANADA){
+				if(num>0){
+					NUM_REBANADAS=num;
+					std::cout << "Rebanadas configuradas: " << num << std::endl;
+				}else{
+					std::cout << " Numero invalido < 0 " << std::endl;
+				}
+				inputContext=NONE;
+			}
+			input.clear();
+			inputMode=NORMAL;
+			return;
+		}
+	}
+	
 	switch(key){
 		case GLFW_KEY_ESCAPE:{
 			if(!input.empty()){
-				input = "";
-				configurando = false;
+				input.clear();
+				inputContext=NONE;
+				inputMode=NORMAL;
 				std::cout << "Cancelado." << std::endl;
 			} else {
 				glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -74,8 +179,9 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 		}
 		case GLFW_KEY_C:{
 			if(!input.empty()){
-				input = "";
-				configurando = false;
+				input.clear();
+				inputContext=NONE;
+				inputMode=NORMAL;
 				std::cout << "Cancelado." << std::endl;
 			}else{
 				if(mods & GLFW_MOD_CONTROL){
@@ -83,151 +189,90 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 					glfwSetWindowShouldClose(window,GLFW_TRUE);
 				}
 			}
+			break;
+		}
+		case GLFW_KEY_1:{
+			// Esfera
+			Sphere* esfera=dynamic_cast<Sphere*>(tower->children[2]);
+			esfera->Mat.UpdateView('g',1.1f,1.1f,1.1f,'x');
+			break;
+		}
+		case GLFW_KEY_2:{
+			// Traslacion cubos
+			Cube* cubo1=dynamic_cast<Cube*>(tower->children[0]);
+			Cube* cubo2=dynamic_cast<Cube*>(tower->children[1]);
+			cubo1->Mat.UpdateView('a',0.0f,-0.1f,0.0f,'y');
+			cubo2->Mat.UpdateView('a',0.0f,0.1f,0.0f,'y');
+			break;
+		}
+		case GLFW_KEY_3:{
+			// Rotacion piramides
+			Piramid* pyramid1 = dynamic_cast<Piramid*>(tower->children[3]);
+			Piramid* pyramid2 = dynamic_cast<Piramid*>(tower->children[4]);
 			
+			pyramid1->Mat.UpdateView('d',90.0f,0.0f,0.0f,'x');
+			pyramid2->Mat.UpdateView('d',90.0f,0.0f,0.0f,'x');
 			break;
 		}
-		case GLFW_KEY_0:
-		case GLFW_KEY_1:
-		case GLFW_KEY_2:
-		case GLFW_KEY_3:
-		case GLFW_KEY_4:
-		case GLFW_KEY_5:
-		case GLFW_KEY_6:
-		case GLFW_KEY_7:
-		case GLFW_KEY_8:
-		case GLFW_KEY_9:{
-			input+=(char)('0' + (key - GLFW_KEY_0));
-			std::cout << " Se leyo " << input << std::endl;
-			break;
+		case GLFW_KEY_4:{
+			Piramid* pyramid1 = dynamic_cast<Piramid*>(tower->children[3]);
+			Piramid* pyramid2 = dynamic_cast<Piramid*>(tower->children[4]);
+			
+			pyramid1->Mat.UpdateView('d',90.0f,0.0f,0.0f,'y');
+			pyramid2->Mat.UpdateView('d',90.0f,0.0f,0.0f,'y');
+            break;
 		}
-		case GLFW_KEY_BACKSPACE:{
-			if(!input.empty()){
-				input.pop_back();
-			}
-			break;
-		}
-		case GLFW_KEY_ENTER:{
-			if(!input.empty()){
-				int num=std::stoi(input);
-				if(configurando){
-					if(num>0){
-						NUM_REBANADAS=num;
-						std::cout << "Rebanadas configuradas: " << num << std::endl;
-					}else{
-						std::cout << " Numero invalido < 0 " << std::endl;
-					}
-					configurando=false;
-				}else if(select_rebanada){
-					if(num >= 0 && num < static_cast<int>(mundito->root->children.size())){
-						std::cout << "Confirmando rebanada... " << input << std::endl;
-						SELECT_REBANDA=num;
-					}
-					else{
-						std::cout << "Numero invalido o rebanada no existente :( " << std::endl;
-					}
-					select_rebanada=false;
-				}
-			}
-			input="";
-			break;
+		case GLFW_KEY_5:{
+			Cube* cubo1=dynamic_cast<Cube*>(tower->children[0]);
+			Cube* cubo2=dynamic_cast<Cube*>(tower->children[1]);
+			cubo1->Mat.UpdateView('d',10.0f,0.0f,0.0f,'x');
+			cubo2->Mat.UpdateView('d',10.0f,0.0f,0.0f,'x');
+            break;
 		}
 		case GLFW_KEY_Q:{
-			//Builder::BuildPizzaScene(mundito,NUM_REBANADAS);
-			Builder::BuildPyramidScene(mundito,1.0f);
-			set_Vs();
+            for (auto c : mundito->root->children){
+				delete c;
+			}
+
+			mundito->root->children.clear();
+
+            if (sceneMode == PIZZA && pizza){
+                pizza=Builder::BuildPizzaScene(mundito, NUM_REBANADAS);
+				mundito->activeSceneNode=pizza;
+				set_Vs();
+			}
+            else if (sceneMode == PYRAMID && piramid){
+                piramid=Builder::BuildPyramidScene(mundito, 1.0f);
+				mundito->activeSceneNode=piramid;
+				set_Vs();
+			}else if (sceneMode == CUBE && cube) {
+				cube = Builder::BuildCubeScene(mundito, {0.0f,0.0f,0.0f});
+				mundito->activeSceneNode = cube;
+				set_Vs();
+			}else if(sceneMode == TOWER && tower){
+				tower = Builder::BuildTowerScene(mundito);
+				mundito->activeSceneNode = tower;
+				set_Vs();
+			}
+			else{
+				std::cout << " NO EXISTE NADA " << std::endl;
+			}
+            
 			break;
 		}
 		case GLFW_KEY_W:{
-			input = "";
+			input.clear();
 			std::cout << "Dame la cantidad de rebanadas: " << std::endl;
-			configurando=true;
+			inputMode=CONFIGURANDO;
+			inputContext=SET_REBANADA;
 			break;
 		}
 		case GLFW_KEY_R:{
 			SELECT_REBANDA=-1;
-			input = "";
+			input.clear();
 			std::cout << "Dame la pizza a mover ... " << std::endl;
-			select_rebanada=true;
-			break;
-		}
-		case GLFW_KEY_UP:{
-			if(SELECT_REBANDA == -1){
-				Matrix* mat=&(mundito->root->Mat);
-				mat->UpdateView('a',0.0f,0.1f);
-				break;
-			}
-			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
-			mat->UpdateView('a',0.0f,0.1f);
-			break;
-		}
-		case GLFW_KEY_DOWN:{
-			if(SELECT_REBANDA == -1){
-				Matrix* mat=&(mundito->root->Mat);
-				mat->UpdateView('a',0.0f,-0.1f);
-				break;
-			}
-			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
-			mat->UpdateView('a',0.0f,-0.1f);
-			break;
-		}
-		case GLFW_KEY_RIGHT:{
-			if(SELECT_REBANDA == -1){
-				Matrix* mat=&(mundito->root->Mat);
-				mat->UpdateView('a',0.1f,0.0f);
-				break;
-			}
-			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
-			mat->UpdateView('a',0.1f,0.0f);
-			break;
-		}
-		case GLFW_KEY_LEFT:{
-			if(SELECT_REBANDA == -1){
-				Matrix* mat=&(mundito->root->Mat);
-				mat->UpdateView('a',-0.1f,0.0f);
-				break;
-			}
-			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
-			mat->UpdateView('a',-0.1f,0.0f);
-			break;
-		}
-		case GLFW_KEY_D:{
-			if(SELECT_REBANDA == -1){
-				Matrix* mat=&(mundito->root->Mat);
-				mat->UpdateView('d',10.0f,0.0f,0.0f,CURRENT_AXIS);
-				break;
-			}
-			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
-			mat->UpdateView('d',10.0f,0.0f,0.0f,CURRENT_AXIS);
-			break;
-		}
-		case GLFW_KEY_F:{
-			if(SELECT_REBANDA == -1){
-				Matrix* mat=&(mundito->root->Mat);
-				mat->UpdateView('f',10.0f,0.0f,CURRENT_AXIS);
-				break;
-			}
-			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
-			mat->UpdateView('f',10.0f,0.0f,0.0f,CURRENT_AXIS);
-			break;
-		}
-		case GLFW_KEY_G:{
-			if(SELECT_REBANDA == -1){
-				Matrix* mat=&(mundito->root->Mat);
-				mat->UpdateView('g',1.1,1.1);
-				break;
-			}
-			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
-			mat->UpdateView('g',1.1,1.1);
-			break;
-		}
-		case GLFW_KEY_H:{
-			if(SELECT_REBANDA == -1){
-				Matrix* mat=&(mundito->root->Mat);
-				mat->UpdateView('g',0.9,0.9);
-				break;
-			}
-			Matrix* mat=&(mundito->root->children[SELECT_REBANDA]->Mat);
-			mat->UpdateView('g',0.9,0.9);
+			inputMode=CONFIGURANDO;
+			inputContext=SELECT_REBANADA;
 			break;
 		}
 		case GLFW_KEY_X:{
@@ -245,34 +290,22 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 			std::cout << "Eje actual: Z" << std::endl;
 			break;
 		}
+		case GLFW_KEY_T:{
+			if(mundito && mundito->activeSceneNode){
+				mundito->activeSceneNode->EditMode();
+			}
+			break;
+		}
 		default:{
 			break;
 		}
 	}
-}
-void print_menu() {
-    std::cout << "===================================" << std::endl;
-    std::cout << "|        Bienvenido a             |" << std::endl;
-    std::cout << "|     Simulador de Pizza          |" << std::endl;
-	std::cout << "|     Control 1                   |" << std::endl;
-    std::cout << "|                                 |" << std::endl;
-    std::cout << "|  Q. Generar pizza (default=4)   |" << std::endl;
-    std::cout << "|  W. Configurar                  |" << std::endl;
-    std::cout << "|  R. Seleccion parte (0-N)       |" << std::endl;
-	std::cout << "|  d. Rotar (0.1)                 |" << std::endl;
-	std::cout << "|  f. Rotar inverso (0.1)         |" << std::endl;
-	std::cout << "|  g. Escalar (1.1)               |" << std::endl;
-	std::cout << "|  h. Escalar inverso (0.9)       |" << std::endl;
-	std::cout << "|  x. Usar eje x                  |" << std::endl;
-	std::cout << "|  y. Usar eje y                  |" << std::endl;
-	std::cout << "|  z. Usar eje z                  |" << std::endl;
-    std::cout << "|  4. Mover arriba (Flecha arr)   |" << std::endl;
-    std::cout << "|  5. Mover abajo (Flecha abj)    |" << std::endl;
-    std::cout << "|  6. Mover derecha (Flecha der)  |" << std::endl;
-	std::cout << "|  7. Mover izquierda (Flecha izq)|" << std::endl;
-    std::cout << "|  8. Salir (ESC o CTRL+C)        |" << std::endl;
-    std::cout << "===================================" << std::endl;
-	std::cout << " AL TERMINAR DE ESCRIBIR LA PARTE O CONFIGURACIÓN DE REBANDAS CONFIRMAR CON ENTER " << std::endl;
+	if(inputMode == NORMAL){
+		if(mundito && mundito->activeSceneNode){
+			mundito->activeSceneNode->handleKey(key,mods,CURRENT_AXIS);
+		}
+	}
+	
 }
 
 int main(){
@@ -299,20 +332,40 @@ int main(){
 	glfwSetKeyCallback(window,key_callback);
 	glfwSetFramebufferSizeCallback(window,framebuffer_size_callback);
 	
-	print_menu();
-	//Builder::BuildPizzaScene(mundito,NUM_REBANADAS);
-	Builder::BuildPyramidScene(mundito,1.0f);
+	mundito = new World();
+	
+	/*std::cout << "CONSTRUYENDO PIZZA " << std::endl;
+	pizza = Builder::BuildPizzaScene(mundito,NUM_REBANADAS);*/
+
+	//piramid = Builder::BuildPyramidScene(mundito,1.0f);
+	//cube = Builder::BuildCubeScene(mundito,{0.0f,0.0f,0.0f});
+	//sphere=Builder::BuildSphereScene(mundito,0.5f);
+	tower = Builder::BuildTowerScene(mundito);
+	mundito->activeSceneNode= tower;
+
+	mundito->activeSceneNode->printMenu();
 
 	set_Vs();
 	//mundito->print(mundito->root);
 	glEnable(GL_DEPTH_TEST);
+	
+	alinear();
+
+	float lastTime=glfwGetTime();
+
 	while(!glfwWindowShouldClose(window)){
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
+		float NowTime=glfwGetTime();
+		float dt=NowTime-lastTime;
+		lastTime=NowTime;
 		glBindVertexArray(VAO);
 		glPointSize(8.0f);
 		glLineWidth(8.0f);
+		
+		mundito->Execute_animations(dt,'S');
+		
         mundito->DrawShape();
 		
 		glBindVertexArray(0);

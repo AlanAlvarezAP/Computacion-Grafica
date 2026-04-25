@@ -6,10 +6,69 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+Animation_Step::Animation_Step(ShapeNode* targ,float durat,char tp,float val,char ax){
+	this->target=targ;
+	this->axis=ax;
+	this->type=tp;
+	this->duration=durat;
+	this->elapsed=0.0f;
+	this->value_total=val;
+}
 
+void Animation_Step::Update_animation(float dt){
+	if (finished()){
+		return;
+	}
+	
+	float remaining = duration - elapsed;
+    float real_dt = std::min(dt, remaining);
+	float step=(value_total/duration)*real_dt;
+	elapsed+=real_dt;
+	
+	Matrix* mate=&(target->Mat);
+	switch(type){
+		case 'a':
+		case 's':{
+			mate->UpdateView(type,
+			axis=='x'?step:0,
+			axis=='y'?step:0,
+			axis=='z'?step:0,
+			axis);
+			break;
+		}
+		case 'd':
+		case 'f':{
+			mate->UpdateView(type,
+			step,
+			0.0f,
+			0.0f,
+			axis);
+			break;
+		}
+		case 'g':
+		case 'h':{
+			mate->UpdateView(type,
+			1.0f+step,
+			1.0f+step,
+			1.0f+step,
+			axis);
+			break;
+		}
+		default:{
+			break;
+		}
+	}
+	
+}
+
+bool Animation_Step::finished(){
+	return elapsed >= duration;
+}
 
 World::World(){
-	root=nullptr;
+	root = new ShapeNode(this, GL_TRIANGLES, "ROOT");
+	activeSceneNode=nullptr;
+	globalColorCounter=0;
 }
 World::~World(){
 	delete root;
@@ -26,6 +85,55 @@ std::vector<unsigned int> World::Add_Batch(std::vector<float>& vectors,std::vect
 	all_vertices.insert(all_vertices.end(),vectors.begin(),vectors.end());
 	all_EBOs.insert(all_EBOs.end(),indices.begin(),indices.end());
 	return std::vector<unsigned int>(all_EBOs.begin()+inicio,all_EBOs.end());
+	
+}
+
+void World::Add_animation(Animation_Step* anim){
+	Animation_Step *anim_inv=new Animation_Step(*anim);
+	switch(anim_inv->type){
+		case 'a':{
+			anim_inv->type='s';
+			break;
+		}
+		case 'd':{
+			anim_inv->type='f';
+			break;
+		}
+		case 'g':{
+			anim_inv->type='h';
+		}
+		default:{
+			break;
+		}
+	}
+	pedidos_norm.push(anim);
+	pedidos_inv.push(anim_inv);
+}
+
+void World::Execute_animations(float dt,char inv){
+	if(pedidos_norm.empty() && pedidos_inv.empty()){
+		return;
+	}
+	if(pedidos_norm.empty() && inv == 'N'){
+		if(!pedidos_inv.empty()){
+			pedidos_inv.pop();
+		}
+		return;
+	}else if(pedidos_norm.empty() && inv == 'S'){
+		Animation_Step* top = pedidos_inv.top();
+		top->Update_animation(dt);
+		
+		if(top->finished()){
+			pedidos_inv.pop();
+		}
+	}else{
+		Animation_Step* top=pedidos_norm.front();
+		top->Update_animation(dt);
+		
+		if(top->finished()){
+			pedidos_norm.pop();
+		}
+	}
 	
 }
 
@@ -60,19 +168,15 @@ ShapeNode::ShapeNode(World* world,unsigned int prim,const std::string &nam){
 	this->parent=nullptr;
 	this->name=nam;
 	this->offset=0;
+	this->IsDrawable=false;
+	this->selected_part=-1;
+	this->editWhole=true;
 }
 
 ShapeNode::~ShapeNode(){
 	for (auto son:children){
 		delete son;
 	}
-}
-
-bool ShapeNode::IsLeaf(){
-	if(!(this->EBOs_range.empty())){
-		return true;
-	}
-	return false;
 }
 
 void ShapeNode::AddChildren(ShapeNode* son){
@@ -94,13 +198,22 @@ void ShapeNode::ModifiedShaderColor(const float &r,const float &g,const float &b
 
 void ShapeNode::DrawShape(const Matrix& parent){
 	Matrix global = parent * this->Mat;
-	if(IsLeaf()){
+	if(IsDrawable){
 		this->DrawGeometry(global);
     }
 	
 	for(auto son : children){
         son->DrawShape(global);
 	}
+}
+
+void ShapeNode::SelectPart(int index){
+	selected_part = index;
+}
+
+void ShapeNode::EditMode(){
+	editWhole = !editWhole;
+	std::cout << (editWhole ? "Modo: TODO\n" : "Modo: PARTE\n");
 }
 
 // -------------- LISTA DE POSIBLES FIGURAS POLIMORFICAS -------------

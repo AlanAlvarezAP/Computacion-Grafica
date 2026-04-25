@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <deque>
+#include <queue>
 #include <stack>
 #include <cmath>
 #include <random>
