@@ -66,14 +66,14 @@ Configuration_type inputContext=NONE;
 
 void alinear(){
 	if(pizza){
-		mundito->Add_animation(new Animation_Step(piramid, 1.0f, 'd', 90.0f, 'x'));
+		mundito->Add_animation(new Animation_Step(piramid, 1.0f, 'd', 90.0f, 'x','W'));
 		while(!mundito->pedidos_norm.empty() || !mundito->pedidos_inv.empty()){
 			mundito->Execute_animations(1.0f,'N');
 		}
 		
 	}
 	if(piramid){
-		mundito->Add_animation(new Animation_Step(piramid, 1.0f, 'd', 90.0f, 'x'));
+		mundito->Add_animation(new Animation_Step(piramid, 1.0f, 'd', 90.0f, 'x','W'));
 		while(!mundito->pedidos_norm.empty() || !mundito->pedidos_inv.empty()){
 			mundito->Execute_animations(1.0f,'N');
 		}
@@ -81,19 +81,73 @@ void alinear(){
 	
 }
 
-void pedidos_Sphere(Sphere* sphere){
+void pedidos_control2(int num){
+	switch(num){
+		case 1:{
+			Sphere* esfera=dynamic_cast<Sphere*>(tower->children[2]);
+			mundito->Add_animation(new Animation_Step(esfera, 1.0f, 'g', 1.1f, 'x','W'));
+			std::cout << "Termino animacion" << std::endl;
+			break;
+		}
+		case 2:{
+			Cube* cubo1=dynamic_cast<Cube*>(tower->children[0]);
+			Cube* cubo2=dynamic_cast<Cube*>(tower->children[1]);
+			for(int i=0;i<10;i++){
+				mundito->Add_animation(new Animation_Step(cubo1, 0.03f, 'a', -0.1f, 'y','L'));
+				mundito->Add_animation(new Animation_Step(cubo2, 0.03f, 'a', 0.1f, 'y','L'));
+			}
+			
+			break;
+		}
+		case 3:{
+			Piramid* pyramid1 = dynamic_cast<Piramid*>(tower->children[3]);
+			Piramid* pyramid2 = dynamic_cast<Piramid*>(tower->children[4]);
+			
+			for(int i=0;i<36;i++){
+				mundito->Add_animation(new Animation_Step(pyramid1, 0.03f, 'd', 10.0f, 'x','L'));
+				mundito->Add_animation(new Animation_Step(pyramid2, 0.03f, 'd', 10.0f, 'x','L'));
+			}
+			
+			break;
+		}
+		case 4:{
+			Piramid* pyramid1 = dynamic_cast<Piramid*>(tower->children[3]);
+			Piramid* pyramid2 = dynamic_cast<Piramid*>(tower->children[4]);
+			
+			for(int i=0;i<18;i++){
+				mundito->Add_animation(new Animation_Step(pyramid1, 0.03f, 'd', 10.0f, 'y','W'));
+				mundito->Add_animation(new Animation_Step(pyramid2, 0.03f, 'd', 10.0f, 'y','W'));
+			}
+			break;
+		}
+		case 5:{
+			Cube* cubo1=dynamic_cast<Cube*>(tower->children[0]);
+			Cube* cubo2=dynamic_cast<Cube*>(tower->children[1]);
+			for(int i=0;i<18;i++){
+				mundito->Add_animation(new Animation_Step(cubo1, 0.03f, 'd', 10.0f, 'x','W'));
+				mundito->Add_animation(new Animation_Step(cubo2, 0.03f, 'd', 10.0f, 'x','W'));
+			}
+			break;
+		}
+		default:{
+			break;
+		}
+	}
+}
+
+/*void pedidos_Sphere(Sphere* sphere){
 	
 	for(int i=0;i<5;i++){
 		mundito->Add_animation(new Animation_Step(piramid, 1.0f, 'g', 1.1f, 'x'));
 	}
 	
 	
-	/*mundito->Add_animation(new Animation_Step(piramid, 2.0f, 'f', 180.0f, 'x'));
+	mundito->Add_animation(new Animation_Step(piramid, 2.0f, 'f', 180.0f, 'x'));
 	for(int i=0;i<10;i++){
 		mundito->Add_animation(new Animation_Step(piramid, 1.0f, 'd', 360.0f, 'y'));
 	}
-	mundito->Add_animation(new Animation_Step(piramid, 2.0f, 'd', 45.0f, 'z'));*/
-}
+	mundito->Add_animation(new Animation_Step(piramid, 2.0f, 'd', 45.0f, 'z'));
+}*/
 
 void framebuffer_size_callback(GLFWwindow* window,int width,int height){
 	glViewport(0,0,width,height);
@@ -193,40 +247,45 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 		}
 		case GLFW_KEY_1:{
 			// Esfera
-			Sphere* esfera=dynamic_cast<Sphere*>(tower->children[2]);
-			esfera->Mat.UpdateView('g',1.1f,1.1f,1.1f,'x');
+			/*Sphere* esfera=dynamic_cast<Sphere*>(tower->children[2]);
+			esfera->Mat.UpdateView('g',1.1f,1.1f,1.1f,'x','W');*/
+			pedidos_control2(1);
 			break;
 		}
 		case GLFW_KEY_2:{
 			// Traslacion cubos
-			Cube* cubo1=dynamic_cast<Cube*>(tower->children[0]);
+			/*Cube* cubo1=dynamic_cast<Cube*>(tower->children[0]);
 			Cube* cubo2=dynamic_cast<Cube*>(tower->children[1]);
-			cubo1->Mat.UpdateView('a',0.0f,-0.1f,0.0f,'y');
-			cubo2->Mat.UpdateView('a',0.0f,0.1f,0.0f,'y');
+			cubo1->Mat.UpdateView('a',0.0f,-0.1f,0.0f,'y','L');
+			cubo2->Mat.UpdateView('a',0.0f,0.1f,0.0f,'y','L');*/
+			pedidos_control2(2);
 			break;
 		}
 		case GLFW_KEY_3:{
 			// Rotacion piramides
-			Piramid* pyramid1 = dynamic_cast<Piramid*>(tower->children[3]);
+			/*Piramid* pyramid1 = dynamic_cast<Piramid*>(tower->children[3]);
 			Piramid* pyramid2 = dynamic_cast<Piramid*>(tower->children[4]);
 			
-			pyramid1->Mat.UpdateView('d',90.0f,0.0f,0.0f,'x');
-			pyramid2->Mat.UpdateView('d',90.0f,0.0f,0.0f,'x');
+			pyramid1->Mat.UpdateView('d',10.0f,0.0f,0.0f,'x','L');
+			pyramid2->Mat.UpdateView('d',10.0f,0.0f,0.0f,'x','L');*/
+			pedidos_control2(3);
 			break;
 		}
 		case GLFW_KEY_4:{
-			Piramid* pyramid1 = dynamic_cast<Piramid*>(tower->children[3]);
+			/*Piramid* pyramid1 = dynamic_cast<Piramid*>(tower->children[3]);
 			Piramid* pyramid2 = dynamic_cast<Piramid*>(tower->children[4]);
 			
-			pyramid1->Mat.UpdateView('d',90.0f,0.0f,0.0f,'y');
-			pyramid2->Mat.UpdateView('d',90.0f,0.0f,0.0f,'y');
+			pyramid1->Mat.UpdateView('d',10.0f,0.0f,0.0f,'y','W');
+			pyramid2->Mat.UpdateView('d',10.0f,0.0f,0.0f,'y','W');*/
+			pedidos_control2(4);
             break;
 		}
 		case GLFW_KEY_5:{
-			Cube* cubo1=dynamic_cast<Cube*>(tower->children[0]);
+			/*Cube* cubo1=dynamic_cast<Cube*>(tower->children[0]);
 			Cube* cubo2=dynamic_cast<Cube*>(tower->children[1]);
-			cubo1->Mat.UpdateView('d',10.0f,0.0f,0.0f,'x');
-			cubo2->Mat.UpdateView('d',10.0f,0.0f,0.0f,'x');
+			cubo1->Mat.UpdateView('d',10.0f,0.0f,0.0f,'x','W');
+			cubo2->Mat.UpdateView('d',10.0f,0.0f,0.0f,'x','W');*/
+			pedidos_control2(5);
             break;
 		}
 		case GLFW_KEY_Q:{
@@ -349,7 +408,7 @@ int main(){
 	//mundito->print(mundito->root);
 	glEnable(GL_DEPTH_TEST);
 	
-	alinear();
+	//alinear();
 
 	float lastTime=glfwGetTime();
 

@@ -14,12 +14,13 @@ void Tower::Generate() {
 
     Cube* cube1 = new Cube(world, {0, 0, 0});
     cube1->Generate();
-    cube1->Mat.UpdateView('a', 0.0f, 0.5f, 0.0f, 'y');
+    cube1->Mat.UpdateView('a', 0.0f, 0.5f, 0.0f, 'y','W');
+	cube1->Mat.UpdateView('g', 1.0f, 2.0f, 1.0f, 'y','L');
     this->AddChildren(cube1);
 	
 	Cube* cube2 = new Cube(world, {0, 0, 0});
     cube2->Generate();
-    cube2->Mat.UpdateView('a', 0.0f, -0.5f, 0.0f, 'y');
+    cube2->Mat.UpdateView('a', 0.0f, -0.5f, 0.0f, 'y','W');
     this->AddChildren(cube2);
 
 
@@ -29,19 +30,19 @@ void Tower::Generate() {
     this->AddChildren(sphere);
 
 
-
-    Point pyrCenter = {0.0f, 0.0f, 0.0f, 0.0f};
+	Point pyrCenter = {0.0f, 0.0f, 0.0f, 0.0f};
     Piramid* pyramid1 = new Piramid(world, pyrCenter, 4,0.2f, 0.5f);
     pyramid1->Generate();
-	pyramid1->Mat.UpdateView('d', 90.0f, 0.0f, 0.0f, 'z');
-    pyramid1->Mat.UpdateView('a', 0.2f, 0.0f, 0.0f, 'z');
+	pyramid1->Mat.UpdateView('a', -0.25f, 0.0f, 0.0f, 'x','L');
+	pyramid1->Mat.UpdateView('d', 90.0f, 0.0f, 0.0f, 'z','L');
+    
 	this->AddChildren(pyramid1);
 	
 	Point pyrCenter2 = {0.0f, 0.0f, 0.0f, 0.0f};
     Piramid* pyramid2 = new Piramid(world, pyrCenter2, 4,0.2f, 0.5f);
     pyramid2->Generate();
-	pyramid2->Mat.UpdateView('f', 90.0f, 0.0f, 0.0f, 'z');
-	pyramid2->Mat.UpdateView('a', -0.2f, 0.0f, 0.0f, 'z');
+	pyramid2->Mat.UpdateView('a', 0.25f, 0.0f, 0.0f, 'x','L');
+	pyramid2->Mat.UpdateView('f', 90.0f, 0.0f, 0.0f, 'z','L');
     this->AddChildren(pyramid2);
 }
 
@@ -56,43 +57,47 @@ void Tower::handleKey(int key, int mods, char CURRENT_AXIS){
 
     switch(key){
 		case GLFW_KEY_UP:{
-			mat->UpdateView('a',0.0f,0.1f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('a',0.0f,0.1f,0.0f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_DOWN:{
-			mat->UpdateView('a',0.0f,-0.1f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('a',0.0f,-0.1f,0.0f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_RIGHT:{
-			mat->UpdateView('a',0.1f,0.0f,0.0f,CURRENT_AXIS);
+			mat->PrintMatrix();
+			mat->UpdateView('a',0.1f,0.0f,0.0f,CURRENT_AXIS,'W');
+			mat->PrintMatrix();
 			break;
 		}
 		case GLFW_KEY_LEFT:{
-			mat->UpdateView('a',-0.1f,0.0f,0.0f,CURRENT_AXIS);
+			mat->PrintMatrix();
+			mat->UpdateView('a',-0.1f,0.0f,0.0f,CURRENT_AXIS,'W');
+			mat->PrintMatrix();
 			break;
 		}
 		case GLFW_KEY_PAGE_UP:{
-			mat->UpdateView('a',0.0f,0.0f,0.1f,CURRENT_AXIS);
+			mat->UpdateView('a',0.0f,0.0f,0.1f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_PAGE_DOWN:{
-			mat->UpdateView('a',0.0f,0.0f,-0.1f,CURRENT_AXIS);
+			mat->UpdateView('a',0.0f,0.0f,-0.1f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_D:{
-			mat->UpdateView('d',10.0f,0.0f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('d',10.0f,0.0f,0.0f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_F:{
-			mat->UpdateView('f',10.0f,0.0f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('f',10.0f,0.0f,0.0f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_G:{
-			mat->UpdateView('g', 1.1f, 1.1f,1.1f,CURRENT_AXIS);
+			mat->UpdateView('g', 1.1f, 1.1f,1.1f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_H:{
-			mat->UpdateView('g', 0.9f, 0.9f,0.9f,CURRENT_AXIS);
+			mat->UpdateView('g', 0.9f, 0.9f,0.9f,CURRENT_AXIS,'W');
 			break;
 		}
 		default:{

@@ -13,11 +13,11 @@ class ShapeNode;
 class Animation_Step{
 public:
 	ShapeNode* target;
-	char axis,type;
+	char axis,type,local_world;
 	float value_total;
 	float duration,elapsed;
 	
-	Animation_Step(ShapeNode* targ,float durat,char tp,float val,char ax);
+	Animation_Step(ShapeNode* targ,float durat,char tp,float val,char ax,char l_w);
 	
 	void Update_animation(float dt);
 	bool finished();

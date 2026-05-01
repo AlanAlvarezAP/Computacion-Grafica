@@ -6,13 +6,14 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-Animation_Step::Animation_Step(ShapeNode* targ,float durat,char tp,float val,char ax){
+Animation_Step::Animation_Step(ShapeNode* targ,float durat,char tp,float val,char ax,char l_w){
 	this->target=targ;
 	this->axis=ax;
 	this->type=tp;
 	this->duration=durat;
 	this->elapsed=0.0f;
 	this->value_total=val;
+	this->local_world=l_w;
 }
 
 void Animation_Step::Update_animation(float dt){
@@ -33,7 +34,7 @@ void Animation_Step::Update_animation(float dt){
 			axis=='x'?step:0,
 			axis=='y'?step:0,
 			axis=='z'?step:0,
-			axis);
+			axis,local_world);
 			break;
 		}
 		case 'd':
@@ -42,7 +43,7 @@ void Animation_Step::Update_animation(float dt){
 			step,
 			0.0f,
 			0.0f,
-			axis);
+			axis,local_world);
 			break;
 		}
 		case 'g':
@@ -51,7 +52,7 @@ void Animation_Step::Update_animation(float dt){
 			1.0f+step,
 			1.0f+step,
 			1.0f+step,
-			axis);
+			axis,local_world);
 			break;
 		}
 		default:{
@@ -197,7 +198,15 @@ void ShapeNode::ModifiedShaderColor(const float &r,const float &g,const float &b
 }
 
 void ShapeNode::DrawShape(const Matrix& parent){
-	Matrix global = parent * this->Mat;
+	Matrix global = parent*this->Mat;
+	/*Piramid* piramide=dynamic_cast<Piramid*>(this);
+	if(piramide){
+		std::cout << "--------------------" << std::endl;
+		parent.PrintMatrix();
+		global.PrintMatrix();
+		piramide->Mat.PrintMatrix();
+		std::cout << "--------------------" << std::endl;
+	}*/
 	if(IsDrawable){
 		this->DrawGeometry(global);
     }

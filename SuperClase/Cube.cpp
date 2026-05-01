@@ -119,43 +119,43 @@ void Cube::handleKey(int key, int mods,char CURRENT_AXIS){
 
     switch(key){
 		case GLFW_KEY_UP:{
-			mat->UpdateView('a',0.0f,0.1f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('a',0.0f,0.1f,0.0f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_DOWN:{
-			mat->UpdateView('a',0.0f,-0.1f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('a',0.0f,-0.1f,0.0f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_RIGHT:{
-			mat->UpdateView('a',0.1f,0.0f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('a',0.1f,0.0f,0.0f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_LEFT:{
-			mat->UpdateView('a',-0.1f,0.0f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('a',-0.1f,0.0f,0.0f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_PAGE_UP:{
-			mat->UpdateView('a',0.0f,0.0f,0.1f,CURRENT_AXIS);
+			mat->UpdateView('a',0.0f,0.0f,0.1f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_PAGE_DOWN:{
-			mat->UpdateView('a',0.0f,0.0f,-0.1f,CURRENT_AXIS);
+			mat->UpdateView('a',0.0f,0.0f,-0.1f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_D:{
-			mat->UpdateView('d',10.0f,0.0f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('d',10.0f,0.0f,0.0f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_F:{
-			mat->UpdateView('f',10.0f,0.0f,0.0f,CURRENT_AXIS);
+			mat->UpdateView('f',10.0f,0.0f,0.0f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_G:{
-			mat->UpdateView('g', 1.1f, 1.1f,1.1f,CURRENT_AXIS);
+			mat->UpdateView('g', 1.1f, 1.1f,1.1f,CURRENT_AXIS,'W');
 			break;
 		}
 		case GLFW_KEY_H:{
-			mat->UpdateView('g', 0.9f, 0.9f,0.9f,CURRENT_AXIS);
+			mat->UpdateView('g', 0.9f, 0.9f,0.9f,CURRENT_AXIS,'W');
 			break;
 		}
 		default:{
