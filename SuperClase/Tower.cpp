@@ -15,7 +15,6 @@ void Tower::Generate() {
     Cube* cube1 = new Cube(world, {0, 0, 0});
     cube1->Generate();
     cube1->Mat.UpdateView('a', 0.0f, 0.5f, 0.0f, 'y','W');
-	cube1->Mat.UpdateView('g', 1.0f, 2.0f, 1.0f, 'y','L');
     this->AddChildren(cube1);
 	
 	Cube* cube2 = new Cube(world, {0, 0, 0});

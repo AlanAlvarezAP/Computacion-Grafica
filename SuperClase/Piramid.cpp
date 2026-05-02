@@ -4,7 +4,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-Piramid::Piramid(World* world,const Point& cent,const int& amount_sec,const float& rad,const float& heig):ShapeNode(world,0,"Pizza"),center(cent),amount_sector(amount_sec),RADIUS(rad),HEIGHT(heig){}
+Piramid::Piramid(World* world,const Point& cent,const int& amount_sec,const float& rad,const float& heig):ShapeNode(world,0,"Piramide"),center(cent),amount_sector(amount_sec),RADIUS(rad),HEIGHT(heig){}
 
 void Piramid::printMenu(){
 	std::cout << "===================================" << std::endl;

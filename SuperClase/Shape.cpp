@@ -138,7 +138,7 @@ void World::Execute_animations(float dt,char inv){
 	
 }
 
-void World::print(ShapeNode* rot){
+void World::print(ShapeNode* rot,int offset){
 	if(!rot || (int)rot->children.size() <= 0){
 		return;
 	}
@@ -148,18 +148,16 @@ void World::print(ShapeNode* rot){
 		std::cout << " ALL VERTICES -> " << this->all_vertices.size() << std::endl;
 		std::cout << " ALL INDICES -> " << this->all_EBOs.size() << std::endl;
 	}
-	
-	std::cout << "==============================" << std::endl;
-	std::cout << "THIS -> " << rot->name << " and size " << rot->EBOs_range.size() << " and offset of " << rot->offset << std::endl;
-	std::cout << "==============================" << std::endl;
-	std::cout << "----------------------------------------------------" << std::endl;
-	for(int i=0;i<rot->children.size();i++){
-		std::cout << "Val -> " << rot->children[i]->name << " and size " << rot->children[i]->EBOs_range.size() << " and offset of " << rot->children[i]->offset << std::endl;
+	std::string spaces;
+	for (int i = 0; i < offset; i++){
+        spaces+="    ";
 	}
-	std::cout << "----------------------------------------------------" << std::endl;
-	std::cout << "----------------------------------------------------" << std::endl;
+	std::cout << spaces << "THIS -> " << rot->name << " and size " << rot->EBOs_range.size() << " and offset of " << rot->offset << std::endl;
+	for(int i=0;i<rot->children.size();i++){
+		std::cout << spaces << "|-----Val -> " << rot->children[i]->name << " and size " << rot->children[i]->EBOs_range.size() << " and offset of " << rot->children[i]->offset << std::endl;
+	}
 	for(auto p:rot->children){
-		print(p);
+		print(p,offset+1);
 	}
 }
 

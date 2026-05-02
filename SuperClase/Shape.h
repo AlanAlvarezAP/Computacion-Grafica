@@ -44,7 +44,7 @@ public:
 	~World();
 	void DrawShape();
 	std::vector<unsigned int> Add_Batch(std::vector<float>& vectors,std::vector<unsigned int>& indices,unsigned int &offset);
-	void print(ShapeNode* rot);
+	void print(ShapeNode* rot,int offset=0);
 	void Add_animation(Animation_Step* anim);
 	void Execute_animations(float dt,char inv);
 };
