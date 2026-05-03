@@ -9,8 +9,9 @@ const char* vertex_shader="#version 330 core\n"
 "layout (location=0) in vec3 inVec;\n"
 "uniform mat4 model;\n"
 "uniform mat4 view;\n"
+"uniform mat4 projection;\n"
 "void main(){\n"
-"	gl_Position=view*model*vec4(inVec.xyz,1.0f);\n"	
+"	gl_Position=projection*view*model*vec4(inVec.xyz,1.0f);\n"	
 "}\n";
 
 const char* fragment_shader="#version 330 core\n"
@@ -83,6 +84,26 @@ void Shaders::SetMatrix(const Matrix& mat){
 	
 	if(Model_loc <= -1){
 		std::cout << "ERROR or couldn't find the model :( " << std::endl;
+		return;
+	}
+	glUniformMatrix4fv(Model_loc,1,GL_FALSE,mat.matrix.data());
+}
+
+void Shaders::SetView(const Matrix& mat){
+	int Model_loc=glGetUniformLocation(this->program_id,"view");
+	
+	if(Model_loc <= -1){
+		std::cout << "ERROR or couldn't find the view :( " << std::endl;
+		return;
+	}
+	glUniformMatrix4fv(Model_loc,1,GL_FALSE,mat.matrix.data());
+}
+
+void Shaders::SetProjection(const Matrix& mat){
+	int Model_loc=glGetUniformLocation(this->program_id,"projection");
+	
+	if(Model_loc <= -1){
+		std::cout << "ERROR or couldn't find the projection :( " << std::endl;
 		return;
 	}
 	glUniformMatrix4fv(Model_loc,1,GL_FALSE,mat.matrix.data());

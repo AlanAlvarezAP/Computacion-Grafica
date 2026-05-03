@@ -40,35 +40,58 @@ Camera::Camera(const Point &pos,const Point& target,const Point& wUP,Camera_Stat
 Matrix Camera::GetLookAt(){
     Matrix view_1,view_2;
 
-	std::cout << "RIGHT " << Right.x << " - " << Right.y << " - " << Right.z << std::endl;
     view_1.matrix[0] = Right.x;
     view_1.matrix[4] = Right.y;
     view_1.matrix[8] = Right.z;
 
-	std::cout << "OwnUp " << OwnUp.x << " - " << OwnUp.y << " - " << OwnUp.z << std::endl;
     view_1.matrix[1] = OwnUp.x;
     view_1.matrix[5] = OwnUp.y;
     view_1.matrix[9] = OwnUp.z;
 
-	std::cout << "Front " << Front.x << " - " << Front.y << " - " << Front.z << std::endl;
     view_1.matrix[2]  = Front.x;
     view_1.matrix[6]  = Front.y;
     view_1.matrix[10] = Front.z;
 
-	std::cout << "Position " << Position.x << " - " << Position.y << " - " << Position.z << std::endl;
     view_2.matrix[12] = -Position.x;
     view_2.matrix[13] = -Position.y;
     view_2.matrix[14] = -Position.z;
 
-	std::cout << "Matrix 1 " << std::endl;
-	view_1.PrintMatrix();
-	std::cout << "Matrix 2 " << std::endl;
-	view_2.PrintMatrix();
-	std::cout << "Matrix 3" << std::endl;
-	Matrix result=view_1*view_2;
-	result.PrintMatrix();
+    return view_1*view_2;
+}
 
-    return result;
+Matrix Camera::GetProjection(float width, float height, float nearP, float farP){
+    Matrix proj;
+
+    float aspect = width / height;
+    float theta = (fov * PI) / 180.0f;
+    float t = std::tan(theta / 2.0f);
+
+    float A = 1.0f / (aspect * t);
+    float B = 1.0f / t;
+    float C = (farP + nearP) / (nearP - farP);
+    float D = (2.0f * farP * nearP) / (nearP - farP);
+
+    proj.matrix[0] = A;
+    proj.matrix[1] = 0.0f;
+    proj.matrix[2] = 0.0f;
+    proj.matrix[3] = 0.0f;
+
+    proj.matrix[4] = 0.0f;
+    proj.matrix[5] = B;
+    proj.matrix[6] = 0.0f;
+    proj.matrix[7] = 0.0f;
+
+    proj.matrix[8]  = 0.0f;
+    proj.matrix[9]  = 0.0f;
+    proj.matrix[10] = C;
+    proj.matrix[11] = -1.0f;
+
+    proj.matrix[12] = 0.0f;
+    proj.matrix[13] = 0.0f;
+    proj.matrix[14] = D;
+    proj.matrix[15] = 0.0f;
+
+    return proj;
 }
 
 void Camera::ProcessKeyboard(Camera_Mov dir,float dt){

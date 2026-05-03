@@ -37,12 +37,13 @@ public:
 	float mov_speed,mouse_sensi,fov;
 	
 public:
-	Camera(const Point &pos = {0.0f,0.0f,0.5f},const Point& target ={0.0f,0.0f,0.0f},const Point& wUP={0.0f,1.0f,0.0f},Camera_Status stat=TARGETING);
+	Camera(const Point &pos = {0.0f,0.0f,0.8f},const Point& target ={0.0f,0.0f,0.0f},const Point& wUP={0.0f,1.0f,0.0f},Camera_Status stat=TARGETING);
 	
 	float Normalize(const Point& val1) const;
 	float dot(const Point& a, const Point& b);
 	Point CrossProduct(const Point& val1,const Point& val2);
 	Matrix GetLookAt();
+	Matrix GetProjection(float width, float height, float nearP, float farP);
 	void ProcessKeyboard(Camera_Mov dir,float dt);
 	void ProcessMouse(float xoff,float yoff,bool firstMov=true);
 	void ProcessScroll(float yoff);

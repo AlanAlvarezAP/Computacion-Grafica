@@ -25,9 +25,9 @@ World::~World(){
 	delete root;
 }
 
-void World::DrawShape(){
+void World::DrawShape(const Matrix& view,const Matrix& projection){
     Matrix identity;
-    root->DrawShape(identity);
+    root->DrawShape(identity,view,projection);
 }
 
 std::vector<unsigned int> World::Add_Batch(std::vector<float>& vectors,std::vector<unsigned int>& indices,unsigned int& offset){
@@ -207,8 +207,10 @@ void ShapeNode::ModifiedShaderColor(const float &r,const float &g,const float &b
 	this->Shader.SetColor(r,g,b);
 }
 
-void ShapeNode::DrawShape(const Matrix& parent){
+void ShapeNode::DrawShape(const Matrix& parent,const Matrix& view,const Matrix& projection){
 	Matrix global = parent*this->Mat;
+	Shader.SetView(view);
+	Shader.SetProjection(projection);
 	/*Piramid* piramide=dynamic_cast<Piramid*>(this);
 	if(piramide){
 		std::cout << "--------------------" << std::endl;
@@ -222,7 +224,7 @@ void ShapeNode::DrawShape(const Matrix& parent){
     }
 	
 	for(auto son : children){
-        son->DrawShape(global);
+        son->DrawShape(global,view,projection);
 	}
 }
 

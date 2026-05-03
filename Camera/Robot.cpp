@@ -24,20 +24,20 @@ void Robot::Generate() {
     Cabeza->AddChildren(cube2);
 	
 	Sphere* sphere1 = new Sphere(world, {0, 0, 0}, 0.1, 12, 12);
-	sphere1->Mat.UpdateView('a',-0.1f, 0.55f, -0.15f,'x','W');
+	sphere1->Mat.UpdateView('a',-0.1f, 0.55f, 0.15f,'x','W');
 	sphere1->Mat.UpdateView('g',0.4f, 0.3f, 1.0f,'x','L');
     sphere1->Generate();
 	Cabeza->AddChildren(sphere1);
 	
 	Sphere* sphere2 = new Sphere(world, {0, 0, 0}, 0.1, 12, 12);
-	sphere2->Mat.UpdateView('a',0.1f, 0.55f, -0.15f,'x','W');
+	sphere2->Mat.UpdateView('a',0.1f, 0.55f, 0.15f,'x','W');
 	sphere2->Mat.UpdateView('g',0.4f, 0.3f, 1.0f,'x','L');
     sphere2->Generate();
 	Cabeza->AddChildren(sphere2);
 	
 	Cube* cube3 = new Cube(world, {0, 0, 0});
     cube3->Generate();
-    cube3->Mat.UpdateView('a', 0.0f, 0.45f, -0.04f, 'y','W');
+    cube3->Mat.UpdateView('a', 0.0f, 0.45f, 0.04f, 'y','W');
 	cube3->Mat.UpdateView('g', 0.1f, 0.05f, 1.0f, 'y','L');
     Cabeza->AddChildren(cube3);
 	this->AddChildren(Cabeza);
@@ -176,7 +176,7 @@ void Robot::Generate() {
 	
 	Piramid* pyramid_PP_izq = new Piramid(world, {0.0f, 0.0f, 0.0f, 0.0f},4,0.2f, 0.5f);
     pyramid_PP_izq->Generate();
-	pyramid_PP_izq->Mat.UpdateView('a',-0.1f,-0.83f,-0.12f,'x','W');
+	pyramid_PP_izq->Mat.UpdateView('a',-0.1f,-0.83f,0.12f,'x','W');
 	pyramid_PP_izq->Mat.UpdateView('g',0.38f,0.4f,0.5f,'x','L');
 	pyramid_PP_izq->Mat.UpdateView('d', 270.0f, 0.0f, 0.0f, 'x','L');
 	
@@ -223,7 +223,7 @@ void Robot::Generate() {
 	
 	Piramid* pyramid_PP_der = new Piramid(world, {0.0f, 0.0f, 0.0f, 0.0f},4,0.2f, 0.5f);
     pyramid_PP_der->Generate();
-	pyramid_PP_der->Mat.UpdateView('a',0.1f,-0.83f,-0.12f,'x','W');
+	pyramid_PP_der->Mat.UpdateView('a',0.1f,-0.83f,0.12f,'x','W');
 	pyramid_PP_der->Mat.UpdateView('g',0.38f,0.4f,0.5f,'x','L');
 	pyramid_PP_der->Mat.UpdateView('d', 270.0f, 0.0f, 0.0f, 'x','L');
 	

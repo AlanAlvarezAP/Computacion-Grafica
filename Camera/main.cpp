@@ -338,13 +338,10 @@ int main(){
 		
 		glfwPollEvents();
 		
-		GLuint viewLoc = glGetUniformLocation(mundito->Shader_global.GetProgram(), "view");
-		Matrix view=cam->GetLookAt();
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.matrix.data());
 		
 		mundito->Execute_animations(dt,'S');
 		
-        mundito->DrawShape();
+        mundito->DrawShape(cam->GetLookAt(),cam->GetProjection(800.0f, 800.0f, 0.1f, 100.0f));
 		
 		glBindVertexArray(0);
 		

@@ -13,5 +13,6 @@ public:
 	unsigned int GetProgram();
 	void SetColor(const float &r,const float &g,const float &b);
 	void SetMatrix(const Matrix& mat);
-	
+	void SetView(const Matrix& mat);
+	void SetProjection(const Matrix& mat);
 };

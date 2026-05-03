@@ -34,7 +34,7 @@ public:
 public:
 	World();
 	~World();
-	void DrawShape();
+	void DrawShape(const Matrix& view,const Matrix& projection);
 	std::vector<unsigned int> Add_Batch(std::vector<float>& vectors,std::vector<unsigned int>& indices,unsigned int &offset);
 	void print(ShapeNode* rot,int offset=0);
 	void Add_animation(Animation_Step* anim);
@@ -64,7 +64,7 @@ public:
 	void AddChildren(ShapeNode* son);
 	void ModifiedShaderTransform(const char &tpe,const float &first_val,float second_val,char axis);
 	void ModifiedShaderColor(const float &r,const float &g,const float &b);
-	void DrawShape(const Matrix& parent);
+	void DrawShape(const Matrix& parent,const Matrix& view,const Matrix& projection);
 	void EditMode();
 	virtual void handleKey(int key, int mods,char CURRENT_AXIS);
 	virtual void printMenu() {}
