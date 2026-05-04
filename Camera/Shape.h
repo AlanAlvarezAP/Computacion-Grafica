@@ -66,6 +66,8 @@ public:
 	void ModifiedShaderColor(const float &r,const float &g,const float &b);
 	void DrawShape(const Matrix& parent,const Matrix& view,const Matrix& projection);
 	void EditMode();
+	Matrix GetWorldMatrix();
+	Point GetWorldPosition();
 	virtual void handleKey(int key, int mods,char CURRENT_AXIS);
 	virtual void printMenu() {}
 	virtual void Generate() {}

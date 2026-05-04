@@ -228,6 +228,17 @@ void ShapeNode::DrawShape(const Matrix& parent,const Matrix& view,const Matrix& 
 	}
 }
 
+Matrix ShapeNode::GetWorldMatrix(){
+    if (parent)
+        return parent->GetWorldMatrix() * Mat;
+    return Mat;
+}
+
+Point ShapeNode::GetWorldPosition() {
+    Matrix w = GetWorldMatrix();
+    return Point{w.matrix[12], w.matrix[13], w.matrix[14]};
+}
+
 void ShapeNode::SelectPart(int index){
 	selected_part = index;
 }

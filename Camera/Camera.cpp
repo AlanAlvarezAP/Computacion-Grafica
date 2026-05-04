@@ -11,7 +11,7 @@ Point Camera::CrossProduct (const Point& val1,const Point& val2){
 	return Point{(val1.y*val2.z-val1.z*val2.y),(val1.z*val2.x- val1.x*val2.z),(val1.x*val2.y-val1.y*val2.x)};
 }
 
-void Camera::UpdateCam(Camera_Status stat,const Point& new_target,bool newTarg){
+void Camera::UpdateCam(Camera_Status stat,const Point& new_target){
 	if(stat==TARGETING){
 		this->Front=(this->Position-new_target)/Normalize(this->Position-new_target);
 	}else{
@@ -22,7 +22,8 @@ void Camera::UpdateCam(Camera_Status stat,const Point& new_target,bool newTarg){
 	}
 	
 	this->Right=(CrossProduct(this->WorldUp,this->Front))/Normalize(CrossProduct(this->WorldUp,this->Front));
-	this->OwnUp=CrossProduct(this->Front,this->Right)/Normalize(CrossProduct(this->Front,this->Right));
+	this->OwnUp=(CrossProduct(this->Front,this->Right))/Normalize(CrossProduct(this->Front,this->Right));
+	//DebugOrthonormalTest();
 }
 
 Camera::Camera(const Point &pos,const Point& target,const Point& wUP,Camera_Status stat){
@@ -34,7 +35,7 @@ Camera::Camera(const Point &pos,const Point& target,const Point& wUP,Camera_Stat
 	this->mouse_sensi=SENSITIVITY;
 	this->fov=ZOOM;
 	
-	UpdateCam(stat,target,true);
+	UpdateCam(stat,target);
 }
 
 Matrix Camera::GetLookAt(){
@@ -57,6 +58,25 @@ Matrix Camera::GetLookAt(){
     view_2.matrix[14] = -Position.z;
 
     return view_1*view_2;
+}
+void Camera::DebugOrthonormalTest(){
+    std::cout << "-----------------------------" << std::endl;
+
+    std::cout << "Norm Front: " << Normalize(Front) << std::endl;
+    std::cout << "Norm Right: " << Normalize(Right) << std::endl;
+    std::cout << "Norm Up:    " << Normalize(OwnUp) << std::endl;
+
+    std::cout << "F*R: " << dot(Front, Right) << std::endl;
+    std::cout << "F*U: " << dot(Front, OwnUp) << std::endl;
+    std::cout << "R*U: " << dot(Right, OwnUp) << std::endl;
+
+    Point test{
+        Right.y*OwnUp.z - Right.z*OwnUp.y,
+        Right.z*OwnUp.x - Right.x*OwnUp.z,
+        Right.x*OwnUp.y - Right.y*OwnUp.x
+    };
+
+    std::cout << "Cross(R,U) vs F norm: "<< Normalize(Point{test.x-Front.x, test.y-Front.y, test.z-Front.z})<< std::endl;
 }
 
 Matrix Camera::GetProjection(float width, float height, float nearP, float farP){
@@ -117,8 +137,17 @@ void Camera::ProcessMouse(float xoff,float yoff,bool firstMov){
 	angle_yaw+=xoff;
 	angle_pitch+=yoff;
 	
+	if (angle_pitch > 89.0f){
+        angle_pitch = 89.0f;
+	}
+    if (angle_pitch < -89.0f){
+        angle_pitch = -89.0f;
+	}
+	
 	UpdateCam(FREE);
 }
 void Camera::ProcessScroll(float yoff){
 	fov-=yoff;
 }
+
+

@@ -24,10 +24,10 @@ struct Point{
 		return {x-other.x,y-other.y,z-other.z,angle};
 	}
 	Point operator*(float s) const{
-		return {x*s,y*s,z*s};
+		return {x*s,y*s,z*s,angle};
 	}
 	Point operator/ (float s) const{
-		return {x/s,y/s,z/s};
+		return {x/s,y/s,z/s,angle};
 	}
 };
 

@@ -4,11 +4,11 @@
 
 const float YAW= -90.0f;
 const float PITCH= 0.0f;
-const float SPEED =  2.5f;
-const float SENSITIVITY= 0.005f;
+const float SPEED = 2.5f;
+const float SENSITIVITY= 0.001f;
 const float ZOOM= 45.0f;
 
-#define TRANSFORM 180/PI
+#define TRANSFORM PI/180
 
 enum Camera_Mov{
 	FORWARD,
@@ -47,6 +47,6 @@ public:
 	void ProcessKeyboard(Camera_Mov dir,float dt);
 	void ProcessMouse(float xoff,float yoff,bool firstMov=true);
 	void ProcessScroll(float yoff);
-	void UpdateCam(Camera_Status stat,const Point& new_target={0.0f,0.0f,0.0f},bool newTarg=false);
-	
+	void UpdateCam(Camera_Status stat,const Point& new_target={0.0f,0.0f,0.0f});
+	void DebugOrthonormalTest();
 };

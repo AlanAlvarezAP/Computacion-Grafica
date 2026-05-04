@@ -16,4 +16,5 @@ public:
     void handleKey(int key, int mods, char axis) override;
 	void SelectPart(int index) override;
 	void Walk();
+	void Move();
 };

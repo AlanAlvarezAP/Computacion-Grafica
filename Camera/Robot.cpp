@@ -349,3 +349,11 @@ void Robot::Walk(){
     std::cout << "Termino animacion" << std::endl;
 }
 
+
+void Robot::Move(){
+
+    world->Add_animation(new Animation_Step(this, 5.0f, 'a',  10.0f, 'x','W'));
+	//world->Add_animation(new Animation_Step(this, 5.0f, 'a', -10.0f, 'y','W'));
+
+    std::cout << "Termino animacion" << std::endl;
+}

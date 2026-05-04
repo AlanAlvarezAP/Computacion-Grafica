@@ -36,7 +36,7 @@ Sphere* sphere = nullptr;
 Tower* tower=nullptr;
 Robot* robot=nullptr;
 Camera* cam=nullptr;
-bool First_cam=true;
+bool Target_free=false;
 float dt=0.0f,lastX=0.0f,lastY=0.0f;
 enum Configuration_type{
 	NONE,
@@ -60,6 +60,7 @@ enum Scene_Shapes{
 
 Input_status inputMode=NORMAL;
 Configuration_type inputContext=NONE;
+Camera_Status camMode = TARGETING;
 int currentSceneIndex = 5;
 void framebuffer_size_callback(GLFWwindow* window,int width,int height){
 	glViewport(0,0,width,height);
@@ -84,11 +85,15 @@ void set_Vs(){
 	glBindVertexArray(0);
 	
 }
-void mouse_callback(GLFWwindow* window, double xpos, double ypos){
-	if (First_cam){
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+
+	static bool firstMouse = true;
+
+    if (firstMouse) {
         lastX = xpos;
         lastY = ypos;
-        First_cam = false;
+        firstMouse = false;
+        return;
     }
 
     float xoffset = xpos - lastX;
@@ -97,7 +102,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     lastX = xpos;
     lastY = ypos;
 
-    cam->ProcessMouse(xoffset, yoffset);
+    if (camMode == FREE) {
+        cam->ProcessMouse(xoffset, yoffset);
+    }
 }
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
@@ -225,20 +232,21 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 			std::cout << "Escena actual: "<< currentSceneIndex << std::endl;
 			break;
 		}
-		case GLFW_KEY_G:{
-			cam->ProcessKeyboard(LEFT,dt);
+		case GLFW_KEY_B: {
+			if (camMode == FREE){
+				camMode = TARGETING;
+				cam->UpdateCam(TARGETING,robot->GetWorldPosition());
+			}
+			else{
+				camMode = FREE;
+				cam->UpdateCam(FREE);
+			}
 			break;
 		}
-		case GLFW_KEY_H:{
-			cam->ProcessKeyboard(FORWARD,dt);
-			break;
-		}
-		case GLFW_KEY_J:{
-			cam->ProcessKeyboard(BACKWARD,dt);
-			break;
-		}
-		case GLFW_KEY_K:{
-			cam->ProcessKeyboard(RIGHT,dt);
+		
+		case GLFW_KEY_O:{
+			Target_free=true;
+			robot->Move();
 			break;
 		}
 		default:{
@@ -256,6 +264,21 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 		}
 	}
 	
+}
+
+void process_movement(GLFWwindow* window){
+    if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS){
+        cam->ProcessKeyboard(FORWARD, dt);
+	}
+    if(glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS){
+        cam->ProcessKeyboard(BACKWARD, dt);
+	}
+    if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS){
+        cam->ProcessKeyboard(LEFT, dt);
+	}
+    if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS){
+        cam->ProcessKeyboard(RIGHT, dt);
+	}
 }
 
 int main(){
@@ -338,9 +361,16 @@ int main(){
 		
 		glfwPollEvents();
 		
-		
+		process_movement(window);
 		mundito->Execute_animations(dt,'S');
 		
+		// Para seguir
+		if (camMode == TARGETING) {
+			cam->UpdateCam(TARGETING, robot->GetWorldPosition());
+		}
+		else {
+			cam->UpdateCam(FREE);
+		}
         mundito->DrawShape(cam->GetLookAt(),cam->GetProjection(800.0f, 800.0f, 0.1f, 100.0f));
 		
 		glBindVertexArray(0);
