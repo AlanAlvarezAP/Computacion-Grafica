@@ -102,4 +102,10 @@ public:
 		return cama;
 	}
 	
+	static Animator* BuildAnimator(){
+		Animator* anim=new Animator();
+		std::cout << "GEN Animator" << std::endl;
+		return anim;
+	}
+	
 };

@@ -6,15 +6,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-Animation_Step::Animation_Step(ShapeNode* targ,float durat,char tp,float val,char ax,char l_w){
-	this->target=targ;
-	this->axis=ax;
-	this->type=tp;
-	this->duration=durat;
-	this->elapsed=0.0f;
-	this->value_total=val;
-	this->local_world=l_w;
-}
+
 
 World::World(){
 	root = new ShapeNode(this, GL_TRIANGLES, "ROOT");
@@ -39,116 +31,6 @@ std::vector<unsigned int> World::Add_Batch(std::vector<float>& vectors,std::vect
 	
 }
 
-bool World::finished(Animation_Step* anim){
-	return anim->elapsed >= anim->duration;
-}
-
-void World::Update_animation(const float &dt){
-	for(int i=0;i<animations.size();i++){
-		Animation_Step* anim=animations[i];
-		if(finished(anim)){
-			continue;
-		}
-		float remaining = anim->duration - anim->elapsed;
-		float real_dt = std::min(dt, remaining);
-		float step=(anim->value_total/anim->duration)*real_dt;
-		anim->elapsed+=real_dt;
-		
-		Matrix* mate=&(anim->target->Mat);
-		switch(anim->type){
-			case 'a':
-			case 's':{
-				mate->UpdateView(anim->type,
-				anim->axis=='x'?step:0,
-				anim->axis=='y'?step:0,
-				anim->axis=='z'?step:0,
-				anim->axis,anim->local_world);
-				break;
-			}
-			case 'd':
-			case 'f':{
-				mate->UpdateView(anim->type,
-				step,
-				0.0f,
-				0.0f,
-				anim->axis,anim->local_world);
-				break;
-			}
-			case 'g':
-			case 'h':{
-				mate->UpdateView(anim->type,
-				1.0f+step,
-				1.0f+step,
-				1.0f+step,
-				anim->axis,anim->local_world);
-				break;
-			}
-			default:{
-				break;
-			}
-		}
-	}
-}
-
-
-void World::Add_animation(Animation_Step* anim){
-	Animation_Step *anim_norm=new Animation_Step(*anim);
-	Animation_Step *anim_inv=new Animation_Step(*anim);
-	switch(anim_inv->type){
-		case 'a':{
-			anim_inv->type='s';
-			break;
-		}
-		case 'd':{
-			anim_inv->type='f';
-			break;
-		}
-		case 'g':{
-			anim_inv->type='h';
-		}
-		default:{
-			break;
-		}
-	}
-	pedidos_norm.push(anim_norm);
-	pedidos_inv.push(anim_inv);
-	delete anim;
-}
-
-void World::Execute_animations(float dt,char inv){
-    if(animations.empty()){
-		if(!pedidos_norm.empty()){
-			while(!pedidos_norm.empty()){
-				animations.emplace_back(pedidos_norm.front());
-				pedidos_norm.pop();
-			}
-		}else if (!pedidos_inv.empty()){
-			while(!pedidos_inv.empty()){
-				animations.emplace_back(pedidos_inv.top());
-				pedidos_inv.pop();
-			}
-		}
-    }
-
-    if(!animations.empty()){
-        Update_animation(dt);
-    }
-
-    bool allFinished = true;
-    for(auto anim : animations){
-        if(!finished(anim)){
-            allFinished = false;
-            break;
-        }
-    }
-
-    if(allFinished && !animations.empty()){
-        for(auto anim : animations){
-            delete anim;
-        }
-        animations.clear();
-    }
-}
 
 void World::print(ShapeNode* rot,int offset){
 	if(!rot || (int)rot->children.size() <= 0){

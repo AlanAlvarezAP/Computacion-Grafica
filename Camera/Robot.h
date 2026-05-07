@@ -1,6 +1,7 @@
 #pragma once 
 
-#include "Shape.h" 
+#include "Shape.h"
+#include "Animator.h" 
 
 class Cube;
 class Sphere;
@@ -15,6 +16,6 @@ public:
 	void printMenu() override;
     void handleKey(int key, int mods, char axis) override;
 	void SelectPart(int index) override;
-	void Walk();
-	void Move();
+	void Walk(Animator* anim);
+	void Move(Animator* anim);
 };

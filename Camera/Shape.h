@@ -8,18 +8,6 @@
 
 class ShapeNode;
 
-
-// Para realizar animaciones :D
-class Animation_Step{
-public:
-	ShapeNode* target;
-	char axis,type,local_world;
-	float value_total;
-	float duration,elapsed;
-	
-	Animation_Step(ShapeNode* targ,float durat,char tp,float val,char ax,char l_w);
-};
-
 class World{
 public:
 	std::vector<float> all_vertices;
@@ -27,9 +15,6 @@ public:
 	Matrix Mat_global;
 	Shaders Shader_global;
 	ShapeNode* root,*activeSceneNode;
-	std::queue<Animation_Step*> pedidos_norm;
-	std::stack<Animation_Step*> pedidos_inv;
-	std::vector<Animation_Step*> animations;
 	int globalColorCounter;
 public:
 	World();
@@ -37,10 +22,6 @@ public:
 	void DrawShape(const Matrix& view,const Matrix& projection);
 	std::vector<unsigned int> Add_Batch(std::vector<float>& vectors,std::vector<unsigned int>& indices,unsigned int &offset);
 	void print(ShapeNode* rot,int offset=0);
-	void Add_animation(Animation_Step* anim);
-	void Execute_animations(float dt,char inv);
-	void Update_animation(const float &dt);
-	bool finished(Animation_Step* anim);
 };
 
 

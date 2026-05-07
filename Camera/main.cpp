@@ -36,8 +36,11 @@ Sphere* sphere = nullptr;
 Tower* tower=nullptr;
 Robot* robot=nullptr;
 Camera* cam=nullptr;
+Animator* anim=nullptr;
 bool Target_free=false;
 float dt=0.0f,lastX=0.0f,lastY=0.0f;
+
+
 enum Configuration_type{
 	NONE,
 	SELECT_REBANADA,
@@ -183,7 +186,7 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 		}
 		case GLFW_KEY_1:{
 			if(currentSceneIndex == static_cast<Scene_Shapes>(Scene_Shapes::ROBOT)){
-				robot->Walk();
+				robot->Walk(anim);
 			}else{
 				std::cout << "No es robot no se puede caminar" << std::endl;
 			}
@@ -246,7 +249,7 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 		
 		case GLFW_KEY_O:{
 			Target_free=true;
-			robot->Move();
+			robot->Move(anim);
 			break;
 		}
 		default:{
@@ -311,6 +314,7 @@ int main(){
 	
 	mundito = new World();
 	cam = Builder::BuildCamera();
+	anim = Builder::BuildAnimator();
 	
 	/*std::cout << "CONSTRUYENDO PIZZA " << std::endl;
 	pizza = Builder::BuildPizzaScene(mundito,NUM_REBANADAS);*/
@@ -362,7 +366,7 @@ int main(){
 		glfwPollEvents();
 		
 		process_movement(window);
-		mundito->Execute_animations(dt,'S');
+		anim->Execute_animations(dt);
 		
 		// Para seguir
 		if (camMode == TARGETING) {

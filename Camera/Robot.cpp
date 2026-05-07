@@ -315,7 +315,7 @@ void Robot::SelectPart(int index) {
     }
 }
 
-void Robot::Walk(){
+void Robot::Walk(Animator* anim){
     ShapeNode* Brazo_izq_AB = dynamic_cast<ShapeNode*>(this->children[2]->children[0]);
     ShapeNode* Brazo_izq_BB = dynamic_cast<ShapeNode*>(this->children[2]->children[1]);
     ShapeNode* Brazo_der_AB = dynamic_cast<ShapeNode*>(this->children[3]->children[0]);
@@ -333,27 +333,35 @@ void Robot::Walk(){
     const float stepTime = 3.0f;
     const float giroPorPaso = 360.0f;
 
-    world->Add_animation(new Animation_Step(Brazo_izq_AB, stepTime, 'd',  AB_steps, 'x','W'));
-	world->Add_animation(new Animation_Step(Brazo_izq_BB, stepTime, 'd', -BB_steps, 'x','W'));
 
-	world->Add_animation(new Animation_Step(Muslo_der, stepTime, 'd', Muslo_steps, 'x','W'));
-	world->Add_animation(new Animation_Step(PiernaPierna_der, stepTime, 'd',  PP_steps, 'x','W'));
+	std::vector<Animation_Step*> group_anim;
 
-	world->Add_animation(new Animation_Step(Brazo_der_AB, stepTime, 'd', -AB_steps, 'x','W'));
-	world->Add_animation(new Animation_Step(Brazo_der_BB, stepTime, 'd',  BB_steps, 'x','W'));
+    group_anim.push_back(new Animation_Step(Brazo_izq_AB, stepTime, 'd',  AB_steps, 'x','W'));
+	group_anim.push_back(new Animation_Step(Brazo_izq_BB, stepTime, 'd', -BB_steps, 'x','W'));
 
-	world->Add_animation(new Animation_Step(Muslo_izq, stepTime, 'd',  -Muslo_steps, 'x','W'));
-	world->Add_animation(new Animation_Step(PiernaPierna_izq, stepTime, 'd', -PP_steps, 'x','W'));
-	world->Add_animation(new Animation_Step(world->root, stepTime, 'd', giroPorPaso, 'y','W'));
+	group_anim.push_back(new Animation_Step(Muslo_der, stepTime, 'd', Muslo_steps, 'x','W'));
+	group_anim.push_back(new Animation_Step(PiernaPierna_der, stepTime, 'd',  PP_steps, 'x','W'));
+
+	group_anim.push_back(new Animation_Step(Brazo_der_AB, stepTime, 'd', -AB_steps, 'x','W'));
+	group_anim.push_back(new Animation_Step(Brazo_der_BB, stepTime, 'd',  BB_steps, 'x','W'));
+
+	group_anim.push_back(new Animation_Step(Muslo_izq, stepTime, 'd',  -Muslo_steps, 'x','W'));
+	group_anim.push_back(new Animation_Step(PiernaPierna_izq, stepTime, 'd', -PP_steps, 'x','W'));
+	group_anim.push_back(new Animation_Step(world->root, stepTime, 'd', giroPorPaso, 'y','W'));
+
+	anim->Add_Animations(group_anim,'S');
 
     std::cout << "Termino animacion" << std::endl;
 }
 
 
-void Robot::Move(){
+void Robot::Move(Animator* anim){
 
-    world->Add_animation(new Animation_Step(this, 5.0f, 'a',  10.0f, 'x','W'));
-	//world->Add_animation(new Animation_Step(this, 5.0f, 'a', -10.0f, 'y','W'));
+	std::vector<Animation_Step*> group_anim;
+    group_anim.push_back(new Animation_Step(this, 5.0f, 'a',  10.0f, 'x','W'));
+	group_anim.push_back(new Animation_Step(this, 5.0f, 'a', -10.0f, 'y','W'));
+
+	anim->Add_Animations(group_anim,'S');
 
     std::cout << "Termino animacion" << std::endl;
 }

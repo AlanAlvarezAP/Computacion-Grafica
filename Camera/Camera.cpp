@@ -85,11 +85,12 @@ Matrix Camera::GetProjection(float width, float height, float nearP, float farP)
     float aspect = width / height;
     float theta = (fov * PI) / 180.0f;
     float t = std::tan(theta / 2.0f);
+	float r = t*aspect;
 
-    float A = 1.0f / (aspect * t);
-    float B = 1.0f / t;
-    float C = (farP + nearP) / (nearP - farP);
-    float D = (2.0f * farP * nearP) / (nearP - farP);
+    float A = nearP / r;
+    float B = nearP / t;
+    float C = -(farP + nearP) / (farP - nearP);
+    float D = -(2.0f * farP * nearP) / (farP - nearP);
 
     proj.matrix[0] = A;
     proj.matrix[1] = 0.0f;
