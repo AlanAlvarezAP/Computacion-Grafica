@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Matrix.h"
+#include "Animator.h"
 
-const float YAW= -90.0f;
+const float YAW= -270.0f;
 const float PITCH= 0.0f;
 const float SPEED = 2.5f;
 const float SENSITIVITY= 0.001f;
@@ -25,13 +26,14 @@ enum Camera_Status{
 class Matrix;
 
 
-class Camera{
+class Camera: public Animatable{
 public:
 	Point Position;
 	Point Front;
 	Point OwnUp;
-	Point Right;
+	Point Left;
 	Point WorldUp;
+	Point Target;
 	
 	float angle_yaw,angle_pitch;
 	float mov_speed,mouse_sensi,fov;
@@ -49,4 +51,5 @@ public:
 	void ProcessScroll(float yoff);
 	void UpdateCam(Camera_Status stat,const Point& new_target={0.0f,0.0f,0.0f});
 	void DebugOrthonormalTest();
+	void ApplyAnimation(char type,char axis,char local_world,float step) override;
 };

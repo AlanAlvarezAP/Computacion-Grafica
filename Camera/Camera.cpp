@@ -13,16 +13,17 @@ Point Camera::CrossProduct (const Point& val1,const Point& val2){
 
 void Camera::UpdateCam(Camera_Status stat,const Point& new_target){
 	if(stat==TARGETING){
-		this->Front=(this->Position-new_target)/Normalize(this->Position-new_target);
+		this->Target=new_target;
+		this->Front=(this->Position-this->Target)/Normalize(this->Position-this->Target);
 	}else{
-		this->Front.x=std::cos(angle_yaw)*std::cos(angle_pitch);
+		this->Front.x=std::cos(angle_pitch)*std::cos(angle_yaw);
 		this->Front.y=std::sin(angle_pitch);
-		this->Front.z=std::sin(angle_yaw)*std::cos(angle_pitch);
+		this->Front.z=std::cos(angle_pitch)*std::sin(angle_yaw);
 		this->Front=this->Front/(Normalize(this->Front));
 	}
 	
-	this->Right=(CrossProduct(this->WorldUp,this->Front))/Normalize(CrossProduct(this->WorldUp,this->Front));
-	this->OwnUp=(CrossProduct(this->Front,this->Right))/Normalize(CrossProduct(this->Front,this->Right));
+	this->Left=(CrossProduct(this->WorldUp,this->Front))/Normalize(CrossProduct(this->WorldUp,this->Front));
+	this->OwnUp=(CrossProduct(this->Front,this->Left))/Normalize(CrossProduct(this->Front,this->Left));
 	//DebugOrthonormalTest();
 }
 
@@ -34,16 +35,16 @@ Camera::Camera(const Point &pos,const Point& target,const Point& wUP,Camera_Stat
 	this->mov_speed=SPEED;
 	this->mouse_sensi=SENSITIVITY;
 	this->fov=ZOOM;
-	
+	this->Target=target;
 	UpdateCam(stat,target);
 }
 
 Matrix Camera::GetLookAt(){
-    Matrix view_1,view_2;
+    Matrix view_1;
 
-    view_1.matrix[0] = Right.x;
-    view_1.matrix[4] = Right.y;
-    view_1.matrix[8] = Right.z;
+    view_1.matrix[0] = Left.x;
+    view_1.matrix[4] = Left.y;
+    view_1.matrix[8] = Left.z;
 
     view_1.matrix[1] = OwnUp.x;
     view_1.matrix[5] = OwnUp.y;
@@ -53,30 +54,31 @@ Matrix Camera::GetLookAt(){
     view_1.matrix[6]  = Front.y;
     view_1.matrix[10] = Front.z;
 
-    view_2.matrix[12] = -Position.x;
-    view_2.matrix[13] = -Position.y;
-    view_2.matrix[14] = -Position.z;
+    view_1.matrix[12] = -dot(Left, Position);
+    view_1.matrix[13] = -dot(OwnUp, Position);
+    view_1.matrix[14] = -dot(Front, Position);
 
-    return view_1*view_2;
+
+    return view_1;
 }
 void Camera::DebugOrthonormalTest(){
     std::cout << "-----------------------------" << std::endl;
 
     std::cout << "Norm Front: " << Normalize(Front) << std::endl;
-    std::cout << "Norm Right: " << Normalize(Right) << std::endl;
+    std::cout << "Norm Right: " << Normalize(Left) << std::endl;
     std::cout << "Norm Up:    " << Normalize(OwnUp) << std::endl;
 
-    std::cout << "F*R: " << dot(Front, Right) << std::endl;
+    std::cout << "F*R: " << dot(Front, Left) << std::endl;
     std::cout << "F*U: " << dot(Front, OwnUp) << std::endl;
-    std::cout << "R*U: " << dot(Right, OwnUp) << std::endl;
+    std::cout << "R*U: " << dot(Left, OwnUp) << std::endl;
 
     Point test{
-        Right.y*OwnUp.z - Right.z*OwnUp.y,
-        Right.z*OwnUp.x - Right.x*OwnUp.z,
-        Right.x*OwnUp.y - Right.y*OwnUp.x
+        Left.y*OwnUp.z - Left.z*OwnUp.y,
+        Left.z*OwnUp.x - Left.x*OwnUp.z,
+        Left.x*OwnUp.y - Left.y*OwnUp.x
     };
 
-    std::cout << "Cross(R,U) vs F norm: "<< Normalize(Point{test.x-Front.x, test.y-Front.y, test.z-Front.z})<< std::endl;
+    std::cout << "Cross(U,L) vs F norm: "<< Normalize(Point{test.x-Front.x, test.y-Front.y, test.z-Front.z})<< std::endl;
 }
 
 Matrix Camera::GetProjection(float width, float height, float nearP, float farP){
@@ -124,10 +126,10 @@ void Camera::ProcessKeyboard(Camera_Mov dir,float dt){
 		Position = Position - (Front * velocity);
 	}
 	if (dir == LEFT){
-		Position = Position - (Right * velocity);
+		Position = Position - (Left * velocity);
 	}
 	if (dir == RIGHT){
-		Position = Position + (Right * velocity);
+		Position = Position + (Left * velocity);
 	}
 	
 }
@@ -151,4 +153,90 @@ void Camera::ProcessScroll(float yoff){
 	fov-=yoff;
 }
 
+void Camera::ApplyAnimation(char type,char axis,char local_world,float step){
+	switch(type){
+		case 'a':{
+			if(axis=='x'){
+				Position.x += step;
+			}
+			if(axis=='y'){ 
+				Position.y += step;
+			}
+			if(axis=='z'){
+				Position.z += step;
+			}
+			break;
+		}
+		case 's':{
+			if(axis=='x'){
+				Position.x -= step;
+			}
+			if(axis=='y'){
+				Position.y -= step;
+			}
+			if(axis=='z'){
+				Position.z -= step;
+			}
+			break;
+		}
+		case 'd':{
+			if(axis=='y'){
+				angle_yaw += step*TRANSFORM;
+			}
+			if(axis=='x'){
+				angle_pitch += step*TRANSFORM;
+			}
+			UpdateCam(FREE);
+			break;
+		}
+		case 'f':{
+			if(axis=='y'){
+				angle_yaw -= step*TRANSFORM;
+			}
+			if(axis=='x'){
+				angle_pitch -= step*TRANSFORM;
+			}
+			UpdateCam(FREE);
+			break;
+		}
+		case 'g':{
+			fov += step;
+			break;
+		}
+		case 'h':{
+			fov -= step;
+			break;
+		}
+		case 'o':{
+			float rad = step * PI / 180.0f;
 
+			Point offset = Position-this->Target;
+
+			Point p;
+			if(axis=='y'){
+				p.x = offset.x * cos(rad) + offset.z * sin(rad);
+				p.z = -offset.x * sin(rad) + offset.z * cos(rad);
+				p.y = offset.y;
+			}
+
+			if(axis=='x'){
+				p.y = offset.y * cos(rad) - offset.z * sin(rad);
+				p.z = offset.y * sin(rad) + offset.z * cos(rad);
+				p.x = offset.x;
+			}
+			if(axis=='z'){
+				p.x = offset.x * cos(rad) - offset.y * sin(rad);
+				p.y = offset.x * sin(rad) + offset.y * cos(rad);
+				p.z = offset.z;
+			}
+			Position = this->Target + p;
+
+			UpdateCam(TARGETING,this->Target);
+			break;
+		}
+		default:{
+			std::cout << "Caso desconocido en camara :( " << std::endl;
+			break;
+		}
+	}
+}

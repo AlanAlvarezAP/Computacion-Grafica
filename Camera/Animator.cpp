@@ -1,6 +1,6 @@
 #include "Animator.h"
 
-Animation_Step::Animation_Step(ShapeNode* targ,float durat,char tp,float val,char ax,char l_w){
+Animation_Step::Animation_Step(Animatable* targ,float durat,char tp,float val,char ax,char l_w){
 	this->target=targ;
 	this->axis=ax;
 	this->type=tp;
@@ -14,9 +14,6 @@ bool Animation_Step::finished(){
 	return this->elapsed >= this->duration;
 }
 
-Animator::Animator(Camera* cam){
-	this->camera=cam;
-}
 
 void Animator::Update_animation(const float &dt){
 	for(int i=0;i<animations[0].size();i++){
@@ -29,39 +26,8 @@ void Animator::Update_animation(const float &dt){
 		float step=(anim->value_total/anim->duration)*real_dt;
 		anim->elapsed+=real_dt;
 		
-		Matrix* mate=&(anim->target->Mat);
-		switch(anim->type){
-			case 'a':
-			case 's':{
-				mate->UpdateView(anim->type,
-				anim->axis=='x'?step:0,
-				anim->axis=='y'?step:0,
-				anim->axis=='z'?step:0,
-				anim->axis,anim->local_world);
-				break;
-			}
-			case 'd':
-			case 'f':{
-				mate->UpdateView(anim->type,
-				step,
-				0.0f,
-				0.0f,
-				anim->axis,anim->local_world);
-				break;
-			}
-			case 'g':
-			case 'h':{
-				mate->UpdateView(anim->type,
-				1.0f+step,
-				1.0f+step,
-				1.0f+step,
-				anim->axis,anim->local_world);
-				break;
-			}
-			default:{
-				break;
-			}
-		}
+		anim->target->ApplyAnimation(anim->type,anim->axis,anim->local_world,step);
+		
 	}
 }
 
@@ -84,6 +50,11 @@ void Animator::Add_Animations(std::vector<Animation_Step*> anim,char inv){
 				}
 				case 'g':{
 					cp->type='h';
+					extra.push_back(cp);
+					break;
+				}
+				case 'o':{
+					cp->value_total=-cp->value_total;
 					extra.push_back(cp);
 					break;
 				}

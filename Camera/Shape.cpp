@@ -186,7 +186,41 @@ void ShapeNode::handleKey(int key, int mods,char CURRENT_AXIS){
 	}
 }
 
-
+void ShapeNode::ApplyAnimation(char type,char axis,char local_world,float step){
+	Matrix *mate=&(this->Mat);
+	switch(type){
+		case 'a':
+		case 's':{
+			mate->UpdateView(type,
+			axis=='x'?step:0,
+			axis=='y'?step:0,
+			axis=='z'?step:0,
+			axis,local_world);
+			break;
+		}
+		case 'd':
+		case 'f':{
+			mate->UpdateView(type,
+			step,
+			0.0f,
+			0.0f,
+			axis,local_world);
+			break;
+		}
+		case 'g':
+		case 'h':{
+			mate->UpdateView(type,
+			1.0f+step,
+			1.0f+step,
+			1.0f+step,
+			axis,local_world);
+			break;
+		}
+		default:{
+			break;
+		}
+	}
+}
 
 
 

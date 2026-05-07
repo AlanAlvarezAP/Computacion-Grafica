@@ -4,7 +4,7 @@
 #include "Shaders.h"
 #include "Matrix.h"
 #include "Colors.h"
-
+#include "Animator.h"
 
 class ShapeNode;
 
@@ -25,7 +25,7 @@ public:
 };
 
 
-class ShapeNode{
+class ShapeNode: public Animatable{
 public:
 	Matrix Mat;
 	std::vector<unsigned int> EBOs_range;
@@ -54,6 +54,7 @@ public:
 	virtual void Generate() {}
 	virtual void DrawGeometry(const Matrix& parent){}
 	virtual void SelectPart(int index);
+	void ApplyAnimation(char type,char axis,char local_world,float step) override;
 };
 
 

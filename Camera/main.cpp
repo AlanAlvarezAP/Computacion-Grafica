@@ -40,6 +40,30 @@ Animator* anim=nullptr;
 bool Target_free=false;
 float dt=0.0f,lastX=0.0f,lastY=0.0f;
 
+//------------- SECCION DE TESTS ---------------//
+void tests_anim(){
+
+	// TEST CAMARA
+	Animation_Step* moveRobot = new Animation_Step(robot, 4.0f, 'a', 10.0f, 'x', 'W');
+
+	// rotar la cámara 90 grados en yaw en 4 segundos
+	Animation_Step* rotateCam = new Animation_Step(cam, 4.0f, 'o', 360.0f, 'y', 'W');
+
+	// rotar la cámara 90 grados en yaw en 4 segundos
+	Animation_Step* rotateCam2 = new Animation_Step(cam, 4.0f, 'o', 360.0f, 'x', 'W');
+
+	//Pequeño movimiento para ver Z
+	Animation_Step* movCam1= new Animation_Step(cam,4.0f,'a',1.0f,'x','W');
+	Animation_Step* rotateCam3 = new Animation_Step(cam, 4.0f, 'o', 360.0f, 'z', 'W');
+
+	// zoom suave
+	Animation_Step* zoomCam = new Animation_Step(cam, 4.0f, 'g', -40.0f, 'z', 'W');
+
+	anim->Add_Animations(std::vector<Animation_Step*>{moveRobot,rotateCam}, 'S');
+	anim->Add_Animations(std::vector<Animation_Step*>{rotateCam2}, 'S');
+	anim->Add_Animations(std::vector<Animation_Step*>{movCam1,rotateCam3}, 'S');
+}
+//------------ FIN TESTS xd -------------------//
 
 enum Configuration_type{
 	NONE,
@@ -325,6 +349,9 @@ int main(){
 	//tower = Builder::BuildTowerScene(mundito);
 	robot = Builder::BuildRobotScene(mundito);
 	mundito->activeSceneNode= robot;
+
+	tests_anim();
+	
 
 	mundito->activeSceneNode->printMenu();
 	mundito->print(mundito->root);
