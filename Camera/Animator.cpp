@@ -27,7 +27,6 @@ void Animator::Update_animation(const float &dt){
 		anim->elapsed+=real_dt;
 		
 		anim->target->ApplyAnimation(anim->type,anim->axis,anim->local_world,step);
-		
 	}
 }
 

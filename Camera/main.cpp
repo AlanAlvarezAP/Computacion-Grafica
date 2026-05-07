@@ -27,7 +27,6 @@
 World* mundito=nullptr;
 GLuint VAO,VBO,EBO;
 unsigned int NUM_REBANADAS=4,SELECT_REBANDA=0;
-std::string input="";
 char CURRENT_AXIS = 'z';
 Pizza* pizza=nullptr;
 Piramid* piramid=nullptr;
@@ -43,11 +42,13 @@ float dt=0.0f,lastX=0.0f,lastY=0.0f;
 //------------- SECCION DE TESTS ---------------//
 void tests_anim(){
 
+	// CUIDADO CON DOBLE RELEASE
 	// TEST CAMARA
 	Animation_Step* moveRobot = new Animation_Step(robot, 4.0f, 'a', 10.0f, 'x', 'W');
 
 	// rotar la cámara 90 grados en yaw en 4 segundos
 	Animation_Step* rotateCam = new Animation_Step(cam, 4.0f, 'o', 360.0f, 'y', 'W');
+	Animation_Step* rotateCam1 = new Animation_Step(cam, 4.0f, 'o', 360.0f, 'y', 'W');
 
 	// rotar la cámara 90 grados en yaw en 4 segundos
 	Animation_Step* rotateCam2 = new Animation_Step(cam, 4.0f, 'o', 360.0f, 'x', 'W');
@@ -59,36 +60,36 @@ void tests_anim(){
 	// zoom suave
 	Animation_Step* zoomCam = new Animation_Step(cam, 4.0f, 'g', -40.0f, 'z', 'W');
 
-	anim->Add_Animations(std::vector<Animation_Step*>{moveRobot,rotateCam}, 'S');
+	anim->Add_Animations(std::vector<Animation_Step*>{rotateCam}, 'S');
+	anim->Add_Animations(std::vector<Animation_Step*>{moveRobot,rotateCam1}, 'S');
 	anim->Add_Animations(std::vector<Animation_Step*>{rotateCam2}, 'S');
 	anim->Add_Animations(std::vector<Animation_Step*>{movCam1,rotateCam3}, 'S');
 }
 //------------ FIN TESTS xd -------------------//
 
-enum Configuration_type{
-	NONE,
-	SELECT_REBANADA,
-	SET_REBANADA
-};
-
-enum Input_status{
-	NORMAL,
-	CONFIGURANDO
-};
-
-enum Scene_Shapes{
-    PIZZA,
-    PYRAMID,
-    CUBE,
-    SPHERE,
-    TOWER,
-    ROBOT
-};
-
-Input_status inputMode=NORMAL;
-Configuration_type inputContext=NONE;
 Camera_Status camMode = TARGETING;
 int currentSceneIndex = 5;
+
+void general_Menu(){
+	std::cout << "===================================" << std::endl;
+    std::cout << "|        Bienvenido a             |" << std::endl;
+    std::cout << "|     Simulador de Camara         |" << std::endl;
+    std::cout << "|                                 |" << std::endl;
+    std::cout << "|  1. Empezar animacion (Solo robot)|" << std::endl;
+	std::cout << "|  2. Empezar test camara         |" << std::endl;
+	std::cout << "|  xyz. Rotar ejes                |" << std::endl;
+    std::cout << "|  P. Rotar obj (Respecto mundo)  |" << std::endl;
+	std::cout << "|  B. Cambiar modo camara         |" << std::endl;
+	std::cout << "|  E. Cambiar modo hijo escena activa|" << std::endl;
+	std::cout << "|  Flechas. Mover objeto activo   |" << std::endl;
+	std::cout << "|  J. Camara izquierda            |" << std::endl;
+	std::cout << "|  I. Camara adelante             |" << std::endl;
+	std::cout << "|  K. Camara atras                |" << std::endl;
+	std::cout << "|  L. Camara derecha              |" << std::endl;
+    std::cout << "|  ESC/CTRL+C. Salir              |" << std::endl;
+    std::cout << "===================================" << std::endl;
+}
+
 void framebuffer_size_callback(GLFWwindow* window,int width,int height){
 	glViewport(0,0,width,height);
 }
@@ -133,83 +134,31 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
         cam->ProcessMouse(xoffset, yoffset);
     }
 }
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
     cam->ProcessScroll((float)yoffset);
 }
+
 void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 	if(action != GLFW_PRESS){
 		return;
 	}
 	
-	if(key == GLFW_KEY_ESCAPE){
-		input.clear();
-		inputContext=NONE;
-		inputMode=NORMAL;
-		std::cout << "Cancelado." << std::endl;
-		return;
-	}
-	
-	if(inputMode == CONFIGURANDO){
-		if(key >= GLFW_KEY_0 && key <= GLFW_KEY_9){
-			input+=(char)('0' + (key - GLFW_KEY_0));
-			std::cout << " Se leyo " << input << std::endl;
-			return;
-		}
-		else if (key == GLFW_KEY_BACKSPACE && !input.empty()){
-			input.pop_back();
-			return;
-		}
-		else if(key == GLFW_KEY_ENTER && !input.empty()){
-			std::cout << input << std::endl;
-			int num=std::stoi(input);
-			if(inputContext == SELECT_REBANADA){
-				auto node = mundito->activeSceneNode;
-
-				if(num >= 0 && num < (int)node->children.size()){
-					std::cout << "Confirmando seleccion... " << input << std::endl;
-					node->SelectPart(num);
-					mundito->activeSceneNode->editWhole=false;
-				}
-				else{
-					std::cout << "Numero invalido :( " << std::endl;
-					node->SelectPart(-1);
-				}
-				inputContext=NONE;
-			}
-			else if(inputContext == SET_REBANADA){
-				if(num>0){
-					NUM_REBANADAS=num;
-					std::cout << "Rebanadas configuradas: " << num << std::endl;
-				}else{
-					std::cout << " Numero invalido < 0 " << std::endl;
-				}
-				inputContext=NONE;
-			}
-			input.clear();
-			inputMode=NORMAL;
-			return;
-		}
-		return;
-	}
-	
 	switch(key){
+		case GLFW_KEY_ESCAPE:{
+			std::cout << "ESC presionado saliendo..." << std::endl;
+			glfwSetWindowShouldClose(window,GLFW_TRUE);
+			break;
+		}
+		
 		case GLFW_KEY_C:{
-			if(!input.empty()){
-				input.clear();
-				inputContext=NONE;
-				inputMode=NORMAL;
-				std::cout << "Cancelado." << std::endl;
-			}else{
-				if(mods & GLFW_MOD_CONTROL){
-					std::cout << "CTRL+C presionado saliendo..." << std::endl;
-					glfwSetWindowShouldClose(window,GLFW_TRUE);
-				}
+			if(mods & GLFW_MOD_CONTROL){
+				std::cout << "CTRL+C presionado saliendo..." << std::endl;
+				glfwSetWindowShouldClose(window,GLFW_TRUE);
 			}
 			break;
 		}
 		case GLFW_KEY_1:{
-			if(currentSceneIndex == static_cast<Scene_Shapes>(Scene_Shapes::ROBOT)){
+			if(mundito->activeSceneNode->name == "Robot"){
 				robot->Walk(anim);
 			}else{
 				std::cout << "No es robot no se puede caminar" << std::endl;
@@ -217,19 +166,9 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 			
 			break;
 		}
-		case GLFW_KEY_W:{
-			input.clear();
-			std::cout << "Dame la cantidad de rebanadas: " << std::endl;
-			inputMode=CONFIGURANDO;
-			inputContext=SET_REBANADA;
-			break;
-		}
-		case GLFW_KEY_R:{
-			SELECT_REBANDA=-1;
-			input.clear();
-			std::cout << "Dame la parte del grafo a mover ... " << std::endl;
-			inputMode=CONFIGURANDO;
-			inputContext=SELECT_REBANADA;
+		case GLFW_KEY_2:{
+			std::cout << "Realizando test camara :D " << std::endl;
+			tests_anim();
 			break;
 		}
 		case GLFW_KEY_X:{
@@ -247,24 +186,40 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 			std::cout << "Eje actual: Z" << std::endl;
 			break;
 		}
-		case GLFW_KEY_T:{
-			if(mundito && mundito->activeSceneNode){
-				mundito->activeSceneNode->EditMode();
-			}
+		case GLFW_KEY_J:{
+			cam->ProcessKeyboard(LEFT, dt);
+			break;
+		}
+		case GLFW_KEY_I:{
+			cam->ProcessKeyboard(FORWARD, dt);
+			break;
+		}
+		case GLFW_KEY_K:{
+			cam->ProcessKeyboard(BACKWARD, dt);
+			break;
+		}
+		case GLFW_KEY_L:{
+			cam->ProcessKeyboard(RIGHT, dt);
 			break;
 		}
 		case GLFW_KEY_P:{
 			currentSceneIndex =(currentSceneIndex+1)%mundito->root->children.size();
 			mundito->activeSceneNode=mundito->root->children[currentSceneIndex];
-			std::cout << "Escena actual: "<< currentSceneIndex << std::endl;
+			std::cout << "Escena actual: "<< mundito->activeSceneNode->name << " con index " << currentSceneIndex << std::endl;
 			break;
 		}
+		case GLFW_KEY_E:{
+            mundito->activeSceneNode->SelectNextChild();
+            break;
+        }
 		case GLFW_KEY_B: {
 			if (camMode == FREE){
+				std::cout << "Cambiando a modo TARGETING " << std::endl;
 				camMode = TARGETING;
 				cam->UpdateCam(TARGETING,robot->GetWorldPosition());
 			}
 			else{
+				std::cout << "Cambiando a modo FREE " << std::endl;
 				camMode = FREE;
 				cam->UpdateCam(FREE);
 			}
@@ -280,33 +235,12 @@ void key_callback(GLFWwindow* window,int key,int scan,int action,int mods){
 			break;
 		}
 	}
-	if(inputMode == NORMAL){
-		if(mundito && mundito->activeSceneNode){
-			if(mundito->activeSceneNode->editWhole){
-				mundito->root->handleKey(key,mods,CURRENT_AXIS);
-			}else{
-				mundito->activeSceneNode->handleKey(key,mods,CURRENT_AXIS);
-			}
-			
-		}
+	if(mundito && mundito->activeSceneNode){
+		mundito->activeSceneNode->handleKey(key,mods,CURRENT_AXIS);
 	}
 	
 }
 
-void process_movement(GLFWwindow* window){
-    if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS){
-        cam->ProcessKeyboard(FORWARD, dt);
-	}
-    if(glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS){
-        cam->ProcessKeyboard(BACKWARD, dt);
-	}
-    if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS){
-        cam->ProcessKeyboard(LEFT, dt);
-	}
-    if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS){
-        cam->ProcessKeyboard(RIGHT, dt);
-	}
-}
 
 int main(){
 	glfwInit();
@@ -344,17 +278,17 @@ int main(){
 	pizza = Builder::BuildPizzaScene(mundito,NUM_REBANADAS);*/
 
 	//piramid = Builder::BuildPyramidScene(mundito,1.0f);
-	//cube = Builder::BuildCubeScene(mundito,{0.0f,0.0f,0.0f});
+	cube = Builder::BuildCubeScene(mundito,{0.0f,0.0f,0.0f});
 	//sphere=Builder::BuildSphereScene(mundito,0.5f);
 	//tower = Builder::BuildTowerScene(mundito);
 	robot = Builder::BuildRobotScene(mundito);
 	mundito->activeSceneNode= robot;
 
-	tests_anim();
+	
 	
 
 	mundito->activeSceneNode->printMenu();
-	mundito->print(mundito->root);
+	general_Menu();
 
 	set_Vs();
 	//mundito->print(mundito->root);
@@ -391,8 +325,6 @@ int main(){
 		
 		
 		glfwPollEvents();
-		
-		process_movement(window);
 		anim->Execute_animations(dt);
 		
 		// Para seguir

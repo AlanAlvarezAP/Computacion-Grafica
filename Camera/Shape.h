@@ -38,7 +38,6 @@ public:
 	std::string name;
 	bool IsDrawable;
 	int selected_part;
-    bool editWhole;
 public:
 	ShapeNode(World* world,unsigned int prim,const std::string &nam);
 	virtual ~ShapeNode();
@@ -46,14 +45,13 @@ public:
 	void ModifiedShaderTransform(const char &tpe,const float &first_val,float second_val,char axis);
 	void ModifiedShaderColor(const float &r,const float &g,const float &b);
 	void DrawShape(const Matrix& parent,const Matrix& view,const Matrix& projection);
-	void EditMode();
+	void SelectNextChild();
 	Matrix GetWorldMatrix();
 	Point GetWorldPosition();
 	virtual void handleKey(int key, int mods,char CURRENT_AXIS);
 	virtual void printMenu() {}
 	virtual void Generate() {}
 	virtual void DrawGeometry(const Matrix& parent){}
-	virtual void SelectPart(int index);
 	void ApplyAnimation(char type,char axis,char local_world,float step) override;
 };
 

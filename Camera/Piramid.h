@@ -43,5 +43,4 @@ public:
 	void DrawGeometry(const Matrix& parent) override {}
 	void printMenu() override;
 	void handleKey(int key, int mods,char CURRENT_AXIS) override;
-	void SelectPart(int index) override;
 };

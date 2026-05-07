@@ -22,8 +22,10 @@ void Camera::UpdateCam(Camera_Status stat,const Point& new_target){
 		this->Front=this->Front/(Normalize(this->Front));
 	}
 	
-	this->Left=(CrossProduct(this->WorldUp,this->Front))/Normalize(CrossProduct(this->WorldUp,this->Front));
-	this->OwnUp=(CrossProduct(this->Front,this->Left))/Normalize(CrossProduct(this->Front,this->Left));
+	Point CrossLeft=CrossProduct(this->WorldUp,this->Front);
+	this->Left=CrossLeft/Normalize(CrossLeft);
+	Point CrossUP=CrossProduct(this->Front,this->Left);
+	this->OwnUp=CrossUP/Normalize(CrossUP);
 	//DebugOrthonormalTest();
 }
 
@@ -119,10 +121,10 @@ Matrix Camera::GetProjection(float width, float height, float nearP, float farP)
 
 void Camera::ProcessKeyboard(Camera_Mov dir,float dt){
 	float velocity = mov_speed * dt;
-	if (dir == FORWARD){
+	if (dir == BACKWARD){
 		Position = Position + (Front * velocity);
 	}
-	if (dir == BACKWARD){
+	if (dir == FORWARD){
 		Position = Position - (Front * velocity);
 	}
 	if (dir == LEFT){

@@ -111,10 +111,10 @@ void Cube::Generate() {
 void Cube::handleKey(int key, int mods,char CURRENT_AXIS){
 	ShapeNode* target = this;
 
-    if(!editWhole && selected_part >= 0 && selected_part < children.size()){
+    if(selected_part != -1){
         target = children[selected_part];
     }
-
+	
     Matrix* mat = &(target->Mat);
 
     switch(key){
@@ -186,12 +186,4 @@ void Cube::printMenu(){
     std::cout << "|  8. Salir (ESC o CTRL+C)        |" << std::endl;
     std::cout << "===================================" << std::endl;
 	std::cout << " AL TERMINAR DE ESCRIBIR LA PARTE O CONFIGURACIÓN DE REBANDAS CONFIRMAR CON ENTER " << std::endl;
-}
-
-void Cube::SelectPart(int index) {
-    if(index >= 0 && index < children.size()){
-        selected_part = index;
-    } else {
-        selected_part = -1;
-    }
 }

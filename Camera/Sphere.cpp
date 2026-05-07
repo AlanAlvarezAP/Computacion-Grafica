@@ -138,7 +138,7 @@ void Sphere::DrawGeometry(const Matrix& parent) {
 void Sphere::handleKey(int key, int mods,char CURRENT_AXIS){
 	ShapeNode* target = this;
 
-    if(!editWhole && selected_part >= 0 && selected_part < children.size()){
+    if(selected_part != -1){
         target = children[selected_part];
     }
 
@@ -215,10 +215,3 @@ void Sphere::printMenu(){
 	std::cout << " AL TERMINAR DE ESCRIBIR LA PARTE O CONFIGURACIÓN DE REBANDAS CONFIRMAR CON ENTER " << std::endl;
 }
 
-void Sphere::SelectPart(int index) {
-    if(index >= 0 && index < children.size()){
-        selected_part = index;
-    } else {
-        selected_part = -1;
-    }
-}

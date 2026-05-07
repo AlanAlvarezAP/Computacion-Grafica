@@ -243,7 +243,7 @@ void Robot::Generate() {
 void Robot::handleKey(int key, int mods, char CURRENT_AXIS){
 	ShapeNode* target = this;
 
-    if(!editWhole && selected_part >= 0 && selected_part < (int)children.size()){
+    if(selected_part != -1){
         target = children[selected_part];
     }
 
@@ -307,13 +307,6 @@ void Robot::printMenu(){
     std::cout << "===================================" << std::endl;
 }
 
-void Robot::SelectPart(int index) {
-    if(index >= 0 && index < (int)children.size()){
-        selected_part = index;
-    } else {
-        selected_part = -1;
-    }
-}
 
 void Robot::Walk(Animator* anim){
     ShapeNode* Brazo_izq_AB = dynamic_cast<ShapeNode*>(this->children[2]->children[0]);

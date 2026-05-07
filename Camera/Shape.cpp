@@ -63,7 +63,6 @@ ShapeNode::ShapeNode(World* world,unsigned int prim,const std::string &nam){
 	this->offset=0;
 	this->IsDrawable=false;
 	this->selected_part=-1;
-	this->editWhole=true;
 }
 
 ShapeNode::~ShapeNode(){
@@ -121,19 +120,27 @@ Point ShapeNode::GetWorldPosition() {
     return Point{w.matrix[12], w.matrix[13], w.matrix[14]};
 }
 
-void ShapeNode::SelectPart(int index){
-	selected_part = index;
-}
+void ShapeNode::SelectNextChild(){
+    if(children.empty()){
+        selected_part = -1;
+        std::cout << "Sin hijos entonces Editando TODO" << std::endl;
+        return;
+    }
 
-void ShapeNode::EditMode(){
-	editWhole = !editWhole;
-	std::cout << (editWhole ? "Modo: TODO\n" : "Modo: PARTE\n");
+    selected_part++;
+
+    if(selected_part >= (int)children.size()){
+        selected_part = -1;
+        std::cout << "Editando TODO el objeto" << std::endl;
+    } else {
+        std::cout << "Editando hijo: " << selected_part << " (" << children[selected_part]->name << ")" << std::endl;
+    }
 }
 
 void ShapeNode::handleKey(int key, int mods,char CURRENT_AXIS){
 	ShapeNode* target = this;
 
-    if(!editWhole && selected_part >= 0 && selected_part < children.size()){
+    if(selected_part != -1){
         target = children[selected_part];
     }
 

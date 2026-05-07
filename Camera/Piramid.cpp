@@ -33,7 +33,7 @@ void Piramid::printMenu(){
 void Piramid::handleKey(int key, int mods,char CURRENT_AXIS){
 	ShapeNode* target = this;
 
-    if(!editWhole && selected_part >= 0 && selected_part < children.size()){
+    if(selected_part != -1){
         target = children[selected_part];
     }
 
@@ -111,13 +111,6 @@ void Piramid::Generate(){
 	bas->Generate();
 }
 
-void Piramid::SelectPart(int index) {
-    if(index >= 0 && index < (int)children.size()){
-        selected_part = index;
-    } else {
-        selected_part = -1;
-    }
-}
 
 Base_Piramid::Base_Piramid(World* world,const Point& centro,const float& rad,const int &sid,const float& ste)
 	:ShapeNode(world,GL_TRIANGLES,"Base"),center(centro),radius(rad),sides(sid),steps(ste),sector_Start(0),lines_Start(0){

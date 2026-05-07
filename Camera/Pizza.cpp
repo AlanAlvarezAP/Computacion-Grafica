@@ -36,10 +36,10 @@ void Pizza::handleKey(int key, int mods, char CURRENT_AXIS){
 
     ShapeNode* target = this;
 
-    if(!editWhole && selected_part >= 0 && selected_part < children.size()){
+    if(selected_part != -1){
         target = children[selected_part];
     }
-
+	
     Matrix* mat = &(target->Mat);
 
     switch(key){
@@ -150,14 +150,6 @@ void Pizza::Generate(){
 		
 	}
 	
-}
-
-void Pizza::SelectPart(int index) {
-    if(index >= 0 && index < children.size()){
-        selected_part = index;
-    } else {
-        selected_part = -1;
-    }
 }
 
 Sector::Sector(World* world,const Point& start_point,const Point& end_point,const Point& centro,const float &rad,const int &num_seg):ShapeNode(world,GL_TRIANGLES,"Sector"),startPoint(start_point),endPoint(end_point),center(centro),number_segments(num_seg),radius(rad),sector_Start(0),lines_Start(0){

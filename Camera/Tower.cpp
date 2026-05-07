@@ -48,7 +48,7 @@ void Tower::Generate() {
 void Tower::handleKey(int key, int mods, char CURRENT_AXIS){
 	ShapeNode* target = this;
 
-    if(!editWhole && selected_part >= 0 && selected_part < (int)children.size()){
+    if(selected_part != -1){
         target = children[selected_part];
     }
 
@@ -117,12 +117,4 @@ void Tower::printMenu(){
 	std::cout << "|  5. Cubos rotan todo            |" << std::endl;
     std::cout << "|  ESC/CTRL+C. Salir              |" << std::endl;
     std::cout << "===================================" << std::endl;
-}
-
-void Tower::SelectPart(int index) {
-    if(index >= 0 && index < (int)children.size()){
-        selected_part = index;
-    } else {
-        selected_part = -1;
-    }
 }
